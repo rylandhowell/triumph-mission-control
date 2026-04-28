@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Job } from "@/lib/mission-data";
+import { sendTelegram, msgProgress, checkMilestone, msgMilestone } from "@/lib/telegram";
 
 interface EditableJobProps {
   job: Job;
@@ -31,8 +32,8 @@ export function EditableJob({ job }: EditableJobProps) {
     budget: job.budget,
   });
   const [isLoaded, setIsLoaded] = useState(false);
+  const prevProgress = useRef(job.progress);
 
-  // Load saved edits from localStorage
   useEffect(() => {
     const storageKey = `job-${job.id}-data`;
     const saved = localStorage.getItem(storageKey);
@@ -40,14 +41,16 @@ export function EditableJob({ job }: EditableJobProps) {
       try {
         const parsed = JSON.parse(saved);
         setData((prev) => ({ ...prev, ...parsed }));
+        if (parsed.progress !== undefined) {
+          prevProgress.current = parsed.progress;
+        }
       } catch {
-        // ignore parse errors
+        // ignore
       }
     }
     setIsLoaded(true);
   }, [job.id]);
 
-  // Save to localStorage when data changes
   useEffect(() => {
     if (!isLoaded) return;
     const storageKey = `job-${job.id}-data`;
@@ -55,6 +58,16 @@ export function EditableJob({ job }: EditableJobProps) {
   }, [data, job.id, isLoaded]);
 
   const handleSave = () => {
+    // Send progress update if progress changed
+    if (data.progress !== prevProgress.current) {
+      sendTelegram(msgProgress(data.name, data.progress, data.stage));
+
+      const milestone = checkMilestone(prevProgress.current, data.progress);
+      if (milestone) {
+        sendTelegram(msgMilestone(data.name, milestone));
+      }
+      prevProgress.current = data.progress;
+    }
     setIsEditing(false);
   };
 
@@ -163,9 +176,7 @@ export function EditableJob({ job }: EditableJobProps) {
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3">
-            <h2 className="text-3xl font-semibold tracking-tight">{data.name}</h2>
-          </div>
+          <h2 className="text-3xl font-semibold tracking-tight">{data.name}</h2>
           <p className="mt-2 text-sm text-zinc-400">
             {data.location} · {data.client} · {data.stage}
           </p>
@@ -195,10 +206,7 @@ export function EditableJob({ job }: EditableJobProps) {
       </div>
 
       <div className="h-3 overflow-hidden rounded-full bg-white/10">
-        <div
-          className="h-full rounded-full bg-emerald-500 transition-all"
-          style={{ width: `${data.progress}%` }}
-        />
+        <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${data.progress}%` }} />
       </div>
 
       <p className="text-sm text-zinc-400">Next milestone: {data.next}</p>
