@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "updatedAt": "2026-04-27T19:50:58.976Z",
+  "entries": {
+    "memory:memory/2026-04-19.md:1:15": {
+      "key": "memory:memory/2026-04-19.md:1:15",
+      "path": "memory/2026-04-19.md",
+      "startLine": 1,
+      "endLine": 15,
+      "source": "memory",
+      "snippet": "- User wants a Linear-style “Mission Control” web app for Triumph Homes. - Hard requirements captured from chat: - Clean Linear-like interface. - Strong calendar page as a core feature. - Calendar tab must support a calendar for each active house/job. - Master calendar with per-house filtering/toggle (All Houses vs single house), color-coded by house/event type. - User asked about background work and sub-agents; requested sub-agent “Henry” to build in parallel while assistant remains available. - User requested logo handling requirements: - Remove background (transparent logo). - Export SVG. - Dark/light-safe variants. - Simplified icon mark for sidebar/app icon. - User wants",
+      "recallCount": 3,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 1.9382475539653208,
+      "maxScore": 0.6746741253958921,
+      "firstRecalledAt": "2026-04-27T19:12:39.252Z",
+      "lastRecalledAt": "2026-04-27T19:50:58.976Z",
+      "queryHashes": [
+        "41f10e53aa91",
+        "7aa952bb49bc",
+        "323ccf3bdb94"
+      ],
+      "recallDays": [
+        "2026-04-27"
+      ],
+      "conceptTags": [
+        "linear-style",
+        "linear-like",
+        "house/job",
+        "per-house",
+        "filtering/toggle",
+        "color-coded",
+        "house/event",
+        "sub-agents"
+      ]
+    }
+  }
+}
