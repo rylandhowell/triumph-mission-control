@@ -5,7 +5,7 @@ export function Sidebar({ currentPath }: { currentPath: string }) {
   return (
     <aside className="mission-panel hidden w-72 shrink-0 p-5 lg:block">
       <div>
-        <p className="text-[11px] uppercase tracking-[0.28em] text-zinc-500">Triumph Homes</p>
+        <p className="text-[11px] uppercase tracking-[0.28em] text-zinc-500">Triumph Homes Inc</p>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight">Mission Control</h1>
         <p className="mt-2 text-sm text-zinc-400">Operations dashboard for jobs, schedule, and blockers.</p>
       </div>

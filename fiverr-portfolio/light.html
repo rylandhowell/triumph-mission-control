@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ryland Howell | Automation & Software Developer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #f4f7fb;
+        --panel: #ffffff;
+        --panel-2: #ffffff;
+        --text: #0f172a;
+        --muted: #475569;
+        --line: #dbe4f0;
+        --accent: #0ea5e9;
+        --accent-2: #22d3ee;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        background: linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+        color: var(--text);
+        line-height: 1.5;
+      }
+      .wrap { width: min(1100px, 92vw); margin: 34px auto 56px; display: grid; gap: 18px; }
+      .card {
+        background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 22px;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+      }
+      .hero h1 { margin: 0; font-size: clamp(1.9rem, 4vw, 3rem); line-height: 1.1; }
+      .kicker { margin: 0 0 12px; color: #0284c7; letter-spacing: 0.14em; font-size: .75rem; font-weight: 700; }
+      .sub { color: var(--muted); max-width: 760px; font-size: 1.03rem; }
+      .cta-row { margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap; }
+      .btn { display: inline-block; padding: 10px 14px; border-radius: 10px; border: 1px solid #c9d7ea; color: var(--text); text-decoration: none; font-weight: 600; background: #fff; }
+      .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #03202c; border: 0; }
+      h2 { margin: 0 0 12px; font-size: 1.2rem; }
+      ul { margin: 0; padding-left: 1.1rem; }
+      li { margin: 0.42rem 0; color: var(--muted); }
+      .grid-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+      .projects h2 { margin: 4px 0 14px; }
+      .project-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+      .project h3 { margin: 2px 0 8px; font-size: 1.02rem; }
+      .project p { color: var(--muted); margin: 0 0 8px; }
+      .tag { margin: 0; font-size: .7rem; color: #0284c7; letter-spacing: .12em; font-weight: 700; }
+      .impact { color: #075985 !important; font-weight: 600; }
+      .contact-row { margin-top: 12px; display: flex; gap: 14px; flex-wrap: wrap; color: var(--muted); }
+      @media (max-width: 860px) { .grid-two, .project-grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="hero card">
+        <p class="kicker">TRIUMPH HOMES INC • OPERATIONS + SOFTWARE</p>
+        <h1>I build software that helps real businesses run smoother and make more money.</h1>
+        <p class="sub">Custom dashboards, estimators, CRM workflows, and automation systems built for speed, clarity, and real-world use.</p>
+        <div class="cta-row">
+          <a class="btn primary" href="#projects">View Portfolio</a>
+          <a class="btn" href="#contact">Start a Project</a>
+        </div>
+      </header>
+      <section class="grid-two" id="about">
+        <article class="card">
+          <h2>Why clients hire me</h2>
+          <ul>
+            <li>Business-first development (not just pretty code)</li>
+            <li>Fast, direct communication and clean delivery</li>
+            <li>Strong operations background from construction project management</li>
+            <li>Systems that are easy for non-technical teams to use daily</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h2>Core services</h2>
+          <ul>
+            <li>Custom CRM / dashboard web apps</li>
+            <li>Estimator and quoting tools</li>
+            <li>Job cost tracking (budget vs actual)</li>
+            <li>Workflow automation + API integrations</li>
+            <li>Web app fixes, optimization, and feature upgrades</li>
+          </ul>
+        </article>
+      </section>
+      <section id="projects" class="projects">
+        <h2>Featured work</h2>
+        <div class="project-grid">
+          <article class="card project"><p class="tag">ESTIMATOR APP</p><h3>Custom Home Quote Builder</h3><p>Built a line-item estimator with plan-upload workflow, calibration controls, and margin-safe quote outputs.</p><p class="impact">Impact: faster quoting + better margin protection.</p></article>
+          <article class="card project"><p class="tag">OPERATIONS DASHBOARD</p><h3>Mission Control for Triumph Homes</h3><p>Designed a linear-style operations app with jobs, calendar, subs tracking, and decision-ready views.</p><p class="impact">Impact: clearer execution and less project drift.</p></article>
+          <article class="card project"><p class="tag">COST TRACKING</p><h3>Budget vs Actual Job Cost Tracker</h3><p>Implemented specific line-item budget tracking, live over/under visibility, and printable homeowner reports.</p><p class="impact">Impact: better cost control and cleaner client communication.</p></article>
+          <article class="card project"><p class="tag">COMPLIANCE TOOLING</p><h3>Subs Insurance Tracking</h3><p>Built GL/WC policy tracking with document upload and expiration extraction to reduce compliance risk.</p><p class="impact">Impact: less admin overhead and fewer missed renewals.</p></article>
+        </div>
+      </section>
+      <section class="card" id="contact">
+        <h2>Let’s build your system</h2>
+        <p>If you need software that actually improves day-to-day operations, I can help. Send your workflow and goals, and I’ll map the fastest path to a working solution.</p>
+        <div class="contact-row"><span>Email: triumphhomes@yahoo.com</span><span>Service Area: Mobile & Baldwin County, AL</span></div>
+      </section>
+    </div>
+  </body>
+</html>

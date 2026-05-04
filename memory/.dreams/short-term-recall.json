@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-27T19:50:58.976Z",
+  "updatedAt": "2026-04-30T20:38:47.973Z",
   "entries": {
     "memory:memory/2026-04-19.md:1:15": {
       "key": "memory:memory/2026-04-19.md:1:15",
@@ -9,20 +9,25 @@
       "endLine": 15,
       "source": "memory",
       "snippet": "- User wants a Linear-style “Mission Control” web app for Triumph Homes. - Hard requirements captured from chat: - Clean Linear-like interface. - Strong calendar page as a core feature. - Calendar tab must support a calendar for each active house/job. - Master calendar with per-house filtering/toggle (All Houses vs single house), color-coded by house/event type. - User asked about background work and sub-agents; requested sub-agent “Henry” to build in parallel while assistant remains available. - User requested logo handling requirements: - Remove background (transparent logo). - Export SVG. - Dark/light-safe variants. - Simplified icon mark for sidebar/app icon. - User wants",
-      "recallCount": 3,
+      "recallCount": 6,
       "dailyCount": 0,
       "groundedCount": 0,
-      "totalScore": 1.9382475539653208,
-      "maxScore": 0.6746741253958921,
+      "totalScore": 4.797815057828368,
+      "maxScore": 1,
       "firstRecalledAt": "2026-04-27T19:12:39.252Z",
-      "lastRecalledAt": "2026-04-27T19:50:58.976Z",
+      "lastRecalledAt": "2026-04-30T20:38:47.973Z",
       "queryHashes": [
         "41f10e53aa91",
         "7aa952bb49bc",
-        "323ccf3bdb94"
+        "323ccf3bdb94",
+        "bd1a0366ba83",
+        "d5b310dd6144",
+        "c48d77803275"
       ],
       "recallDays": [
-        "2026-04-27"
+        "2026-04-27",
+        "2026-04-28",
+        "2026-04-30"
       ],
       "conceptTags": [
         "linear-style",
@@ -33,6 +38,133 @@
         "color-coded",
         "house/event",
         "sub-agents"
+      ]
+    },
+    "memory:memory/2026-04-27.md:1:20": {
+      "key": "memory:memory/2026-04-27.md:1:20",
+      "path": "memory/2026-04-27.md",
+      "startLine": 1,
+      "endLine": 20,
+      "source": "memory",
+      "snippet": "- Set up OpenRouter in OpenClaw using the user's API key in ~/.openclaw/.env. - Updated model preferences/config: - Brain/default: openrouter/moonshotai/kimi-k2 - Coding mode/session override: openrouter/deepseek/deepseek-chat-v3 - Heartbeat model: openrouter/anthropic/claude-haiku-4.5 - Web search: deepseek/deepseek-chat-v3 via Perplexity/OpenRouter - Image understanding: google/gemini-2.5-flash - Disabled built-in periodic heartbeat interval and created cron-based heartbeat-style runs at 9:00 AM and 6:00 PM America/Chicago. - Built out Triumph Homes Mission Control app in ~/.openclaw/workspace/mission-control: - Real sidebar/navigation - Overview dashboard with KPIs - Click",
+      "recallCount": 3,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 2.8411048099763985,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-04-28T14:22:20.291Z",
+      "lastRecalledAt": "2026-04-30T20:38:47.973Z",
+      "queryHashes": [
+        "bd1a0366ba83",
+        "d5b310dd6144",
+        "c48d77803275"
+      ],
+      "recallDays": [
+        "2026-04-28",
+        "2026-04-30"
+      ],
+      "conceptTags": [
+        "router",
+        "preferences/config",
+        "brain/default",
+        "openrouter/moonshotai/kimi-k2",
+        "mode/session",
+        "deepseek/deepseek-chat-v3",
+        "perplexity/openrouter",
+        "google/gemini-2.5-flash"
+      ]
+    },
+    "memory:memory/2026-04-29.md:1:45": {
+      "key": "memory:memory/2026-04-29.md:1:45",
+      "path": "memory/2026-04-29.md",
+      "startLine": 1,
+      "endLine": 45,
+      "source": "memory",
+      "snippet": "# 2026-04-29 - AI Cost Estimator Development ## Context Ryland wants to build the first AI cost-estimating tool for Gulf Coast custom home construction. Aimed to overquote by ~10-15% instead of underquoting. Using Crabtree house as the template house to develop the pricing system. ## Current Attempt to Get Pricing Data Started with the Crabtree floor plan images but the pricing documents aren't processing due to missing sharp dependency for image processing. Multiple images sent but system can't extract the numbers automatically. ## What We'll Build A comprehensive cost estimating system that calculates from components up (not sq ft averages), includes: - Structure calculations by sq ft/s",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 1,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-04-30T20:38:47.973Z",
+      "lastRecalledAt": "2026-04-30T20:38:47.973Z",
+      "queryHashes": [
+        "c48d77803275"
+      ],
+      "recallDays": [
+        "2026-04-30"
+      ],
+      "conceptTags": [
+        "cost-estimating",
+        "10-15",
+        "ft/s",
+        "cost",
+        "estimator",
+        "development",
+        "context",
+        "ryland"
+      ]
+    },
+    "memory:memory/2026-04-30.md:1:11": {
+      "key": "memory:memory/2026-04-30.md:1:11",
+      "path": "memory/2026-04-30.md",
+      "startLine": 1,
+      "endLine": 11,
+      "source": "memory",
+      "snippet": "# 2026-04-30 ## Durable notes - Ryland wants direct, fast iteration on Triumph Homes web copy/UI and estimator functionality. - Branding/copy preference updates applied repeatedly today: use “Triumph Homes Inc”; remove “Grand Bay” from the main marketing statement (service area phrasing centered on Mobile and Baldwin County). - Estimator direction clarified: plan-upload workflow must support PDF-driven takeoff for drywall, brick, and windows/doors with confidence scoring; goal is accurate, house-specific quantities rather than generic sqft scaling. - User explicitly prefers actual window/door unit counts (schedule quantity logic) over raw tag counting. - Brick takeoff trust issue identified",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 1,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-04-30T20:38:47.973Z",
+      "lastRecalledAt": "2026-04-30T20:38:47.973Z",
+      "queryHashes": [
+        "c48d77803275"
+      ],
+      "recallDays": [
+        "2026-04-30"
+      ],
+      "conceptTags": [
+        "copy/ui",
+        "branding/copy",
+        "plan-upload",
+        "pdf-driven",
+        "windows/doors",
+        "house-specific",
+        "window/door",
+        "durable"
+      ]
+    },
+    "memory:memory/2026-04-29.md:32:55": {
+      "key": "memory:memory/2026-04-29.md:32:55",
+      "path": "memory/2026-04-29.md",
+      "startLine": 32,
+      "endLine": 55,
+      "source": "memory",
+      "snippet": "- Drywall Materials: $5,379 - Drywall Labor: $11,300 - Interior Trim Materials: $9,629 - Trim Labor: $7,100 **Total calculated:** $223,301 base costs ## Next Steps 1. Build AI calculator with these real Triumph rates 2. Add Gulf Coast multipliers 3. Test on Crabtree floor plan 4. Calibrate overquote buffer ## Technical Notes - Floorplan analysis working (can see house structure: single story, brick/siding, 2-car garage, specific room layout) - Mission Control app has jobs: Brenton, Dempsey, Hogue, Tanner, Jones - Pricing framework will integrate into both the estimator tool and potentially Mission Control job tracking ## Key Requirements from Ryland - Custom homes only (no base per-sq-ft",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 1,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-04-30T20:38:47.973Z",
+      "lastRecalledAt": "2026-04-30T20:38:47.973Z",
+      "queryHashes": [
+        "c48d77803275"
+      ],
+      "recallDays": [
+        "2026-04-30"
+      ],
+      "conceptTags": [
+        "brick/siding",
+        "2-car",
+        "per-sq-ft",
+        "drywall",
+        "materials",
+        "5,379",
+        "labor",
+        "11,300"
       ]
     }
   }

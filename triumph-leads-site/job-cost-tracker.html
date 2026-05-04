@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Triumph Homes - Job Cost Tracker (v2.1)</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #09090b;
+      color: #e4e4e7;
+      line-height: 1.5;
+      padding: 20px;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+    .subtitle { color: #a1a1aa; font-size: 14px; margin-bottom: 24px; }
+    .panel {
+      background: #18181b;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .panel-title { font-size: 18px; font-weight: 600; }
+    .burn-pct { font-size: 24px; font-weight: 700; }
+    .burn-pct.good { color: #34d399; }
+    .burn-pct.warn { color: #fbbf24; }
+    .burn-pct.danger { color: #f87171; }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #09090b;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 8px;
+    }
+    .row-item { flex: 1; }
+    .row-item.name { font-weight: 500; }
+    .columns {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      text-align: right;
+    }
+    .column-header {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #a1a1aa;
+      margin-bottom: 4px;
+    }
+    .column-value {
+      font-size: 16px;
+      font-weight: 500;
+    }
+    .column-value.under { color: #34d399; }
+    .column-value.over { color: #f87171; }
+    .category-section {
+      margin-bottom: 24px;
+    }
+    .category-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px 8px 0 0;
+    }
+    .category-body {
+      background: #18181b;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      padding: 12px;
+    }
+    select, input, button {
+      background: #09090b;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #e4e4e7;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    button {
+      background: rgba(6,182,212,0.2);
+      border-color: rgba(6,182,212,0.3);
+      color: #a5f3fc;
+      cursor: pointer;
+    }
+    button:hover { background: rgba(6,182,212,0.3); }
+    .add-form {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr auto;
+      gap: 12px;
+      align-items: end;
+    }
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .alert.warn { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); color: #fde68a; }
+    .alert.danger { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: #fecaca; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Job Cost Tracker</h1>
+    <p class="subtitle">Track actual spend vs budget by line item. Alerts at 80% and 100%. (v2.1)</p>
+    
+    <div id="app"></div>
+  </div>
+
+  <script>
+    const categories = ['Site/Precon', 'Shell', 'MEP', 'Interior', 'Exterior'];
+    
+    const defaultLineItems = {
+      'Site/Precon': ['Termite spray', 'Permits', 'Stakeout survey', 'Grading / dirt work', 'Dumpster', 'Final clean'],
+      'Shell': ['Monolithic slab labor', 'Footings / foundation / slab', 'Pump truck for concrete', 'Form labor', 'Framing materials', 'Framing labor', 'Windows & exterior doors', 'Fireplace', 'Roofing'],
+      'MEP': ['HVAC', 'Electrical labor', 'Electrical fixtures', 'Insulation', 'Plumbing fixtures'],
+      'Interior': ['Drywall hang & finish', 'Drywall materials', 'Interior doors & trim materials', 'Trim labor', 'Painting', 'Cabinets', 'Granite / quartz', 'Floors / tile / backsplash', 'Floors & showers labor', 'Appliances allowance'],
+      'Exterior': ['Eaves / porch / Hardie / shutters', 'Brick materials', 'Masonry sand', 'Brick labor', 'Garage doors']
+    };
+
+    let jobs = JSON.parse(localStorage.getItem('th-job-cost-jobs') || '[]');
+    let actuals = JSON.parse(localStorage.getItem('th-job-cost-actuals') || '[]');
+    let activeJobId = jobs[0]?.id || '';
+
+    function formatCurrency(v) {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v);
+    }
+
+    function save() {
+      localStorage.setItem('th-job-cost-jobs', JSON.stringify(jobs));
+      localStorage.setItem('th-job-cost-actuals', JSON.stringify(actuals));
+    }
+
+    function createJob(name) {
+      const lineItems = {};
+      for (const cat of categories) {
+        lineItems[cat] = defaultLineItems[cat].map(n => ({ name: n, budget: 0 }));
+      }
+      const job = { id: Date.now().toString(), jobName: name || 'Untitled Job', lineItems, totalBudget: 0 };
+      jobs.push(job);
+      activeJobId = job.id;
+      save();
+      render();
+    }
+
+    function addActual(jobId, category, lineItem, description, amount) {
+      actuals.push({ id: Date.now().toString(), jobId, date: new Date().toISOString().split('T')[0], category, lineItem, description, amount: Number(amount) || 0 });
+      save();
+      render();
+    }
+
+    function getBurn(job, cat) {
+      const items = job.lineItems[cat];
+      let spent = 0, budget = 0;
+      for (const item of items) {
+        budget += item.budget || 0;
+        spent += actuals.filter(a => a.jobId === job.id && a.category === cat && a.lineItem === item.name).reduce((s, a) => s + a.amount, 0);
+      }
+      return { spent, budget, pct: budget > 0 ? Math.round((spent / budget) * 100) : 0 };
+    }
+
+    function getBurnColor(pct) {
+      if (pct < 80) return 'good';
+      if (pct < 95) return 'warn';
+      return 'danger';
+    }
+
+    function render() {
+      const app = document.getElementById('app');
+      const activeJob = jobs.find(j => j.id === activeJobId);
+
+      let html = `
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <select onchange="activeJobId=this.value;render()">
+                <option value="">Select job</option>
+                ${jobs.map(j => `<option value="${j.id}" ${j.id===activeJobId?'selected':''}>${j.jobName}</option>`).join('')}
+              </select>
+              <button onclick="const n=prompt('Job name:');if(n)createJob(n)">Add job</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      if (!activeJob) {
+        app.innerHTML = html + '<p style="color:#a1a1aa">Select or create a job to start tracking.</p>';
+        return;
+      }
+
+      // Alerts
+      const alerts = [];
+      for (const cat of categories) {
+        const b = getBurn(activeJob, cat);
+        if (b.pct >= 100) alerts.push({ msg: `${cat} over budget`, type: 'danger' });
+        else if (b.pct >= 80) alerts.push({ msg: `${cat} at ${b.pct}%`, type: 'warn' });
+      }
+      
+      if (alerts.length) {
+        html += alerts.map(a => `<div class="alert ${a.type}">${a.msg}</div>`).join('');
+      }
+
+      // Overall
+      const totalBudget = activeJob.totalBudget || Object.values(activeJob.lineItems).flat().reduce((s, i) => s + (i.budget || 0), 0);
+      const totalSpent = actuals.filter(a => a.jobId === activeJob.id).reduce((s, a) => s + a.amount, 0);
+      const totalPct = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+      
+      html += `
+        <div class="panel">
+          <h3 class="panel-title">Overall Burn</h3>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px;">
+            <div><p style="color:#a1a1aa;font-size:12px;">Budget</p><p style="font-size:20px;font-weight:600;">${formatCurrency(totalBudget)}</p></div>
+            <div><p style="color:#a1a1aa;font-size:12px;">Spent</p><p style="font-size:20px;font-weight:600;">${formatCurrency(totalSpent)}</p></div>
+            <div><p style="color:#a1a1aa;font-size:12px;">Burn %</p><p class="burn-pct ${getBurnColor(totalPct)}">${totalPct}%</p></div>
+          </div>
+        </div>
+      `;
+
+      // Categories with line items
+      for (const cat of categories) {
+        const catBurn = getBurn(activeJob, cat);
+        html += `
+          <div class="category-section">
+            <div class="category-header">
+              <span style="font-weight:600;">${cat}</span>
+              <div style="text-align:right;">
+                <span class="burn-pct ${getBurnColor(catBurn.pct)}">${catBurn.pct}%</span>
+                <p style="font-size:12px;color:#a1a1aa;">${formatCurrency(catBurn.spent)} / ${formatCurrency(catBurn.budget)}</p>
+              </div>
+            </div>
+            <div class="category-body">
+        `;
+        
+        for (const item of activeJob.lineItems[cat]) {
+          const spent = actuals.filter(a => a.jobId === activeJob.id && a.category === cat && a.lineItem === item.name).reduce((s, a) => s + a.amount, 0);
+          const variance = spent - item.budget;
+          const isOver = variance > 0;
+          
+          html += `
+            <div class="row">
+              <div class="row-item name">${item.name}</div>
+              <div class="columns">
+                <div>
+                  <div class="column-header">Budget</div>
+                  <div class="column-value">${formatCurrency(item.budget)}</div>
+                </div>
+                <div>
+                  <div class="column-header">Actual</div>
+                  <div class="column-value">${formatCurrency(spent)}</div>
+                </div>
+                <div>
+                  <div class="column-header">Over/Under</div>
+                  <div class="column-value ${isOver ? 'over' : 'under'}">${isOver ? '+' : ''}${formatCurrency(variance)}</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        
+        html += `</div></div>`;
+      }
+
+      // Add actual form
+      html += `
+        <div class="panel">
+          <h3 class="panel-title">Add Actual Expense</h3>
+          <div class="add-form" style="margin-top:16px;">
+            <select id="actCat" onchange="updateLineItems()">
+              ${categories.map(c => `<option value="${c}">${c}</option>`).join('')}
+            </select>
+            <select id="actItem">
+              ${activeJob.lineItems['Site/Precon'].map(i => `<option value="${i.name}">${i.name}</option>`).join('')}
+            </select>
+            <input type="text" id="actDesc" placeholder="Description">
+            <input type="number" id="actAmt" placeholder="Amount">
+            <button onclick="submitActual()">Add</button>
+          </div>
+        </div>
+      `;
+
+      app.innerHTML = html;
+    }
+
+    function updateLineItems() {
+      const cat = document.getElementById('actCat').value;
+      const job = jobs.find(j => j.id === activeJobId);
+      const sel = document.getElementById('actItem');
+      sel.innerHTML = job.lineItems[cat].map(i => `<option value="${i.name}">${i.name}</option>`).join('');
+    }
+
+    function submitActual() {
+      const cat = document.getElementById('actCat').value;
+      const item = document.getElementById('actItem').value;
+      const desc = document.getElementById('actDesc').value;
+      const amt = document.getElementById('actAmt').value;
+      if (activeJobId && amt) {
+        addActual(activeJobId, cat, item, desc, amt);
+        document.getElementById('actDesc').value = '';
+        document.getElementById('actAmt').value = '';
+      }
+    }
+
+    // Load data from Mission Control if exists
+    try {
+      const mcJobs = JSON.parse(localStorage.getItem('mission-control-job-cost-v2') || '{}').jobs || [];
+      const mcActuals = JSON.parse(localStorage.getItem('mission-control-job-cost-v2') || '{}').actuals || [];
+      if (mcJobs.length && !jobs.length) {
+        jobs = mcJobs;
+        actuals = mcActuals;
+        activeJobId = jobs[0]?.id || '';
+      }
+    } catch {}
+
+    render();
+  </script>
+</body>
+</html>

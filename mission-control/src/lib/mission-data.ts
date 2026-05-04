@@ -124,6 +124,9 @@ export const buildChecklist: ChecklistItem[] = [
 export const navItems = [
   { label: "Overview", href: "/" },
   { label: "Calendar", href: "/calendar" },
+  { label: "Estimator", href: "/estimator" },
+  { label: "Job Cost", href: "/job-cost" },
+  { label: "Leads Site", href: "/leads" },
   { label: "Subs", href: "/subs" },
   { label: "Files", href: "/files" },
   { label: "Settings", href: "/settings" },

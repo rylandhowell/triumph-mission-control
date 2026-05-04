@@ -1,0 +1,23 @@
+{
+  "project_name": "Triumph Homes 1800 SF Craftsman",
+  "heated_sf": 1800,
+  "subtitle": "Mobile, AL - Concept Floor Plan",
+  "footprint": "64' x 40' (heated)",
+  "porch": "Rear 10' x 16' covered porch",
+  "parking": "2-car carport 22' x 24'",
+  "style": "Craftsman",
+  "roof": "Architectural shingles",
+  "hvac": "16+ SEER2 variable-speed",
+  "rooms": [
+    {"name":"Bed 2", "dim":"11x12", "x":0.00, "y":0.62, "w":0.33, "h":0.28},
+    {"name":"Bed 3", "dim":"11x12", "x":0.33, "y":0.62, "w":0.28, "h":0.28},
+    {"name":"Laundry/Mud", "dim":"8x9", "x":0.61, "y":0.62, "w":0.39, "h":0.28},
+    {"name":"Hall Bath", "dim":"Tub/Shower", "x":0.00, "y":0.45, "w":0.33, "h":0.17},
+    {"name":"Hall/Linen", "dim":"", "x":0.33, "y":0.45, "w":0.28, "h":0.17},
+    {"name":"Great Room", "dim":"18x19", "x":0.00, "y":0.18, "w":0.41, "h":0.27},
+    {"name":"Kitchen/Dining", "dim":"17x16", "x":0.41, "y":0.18, "w":0.39, "h":0.27},
+    {"name":"Pantry", "dim":"6x8", "x":0.80, "y":0.18, "w":0.20, "h":0.27},
+    {"name":"Primary Bed", "dim":"14x15", "x":0.00, "y":0.00, "w":0.41, "h":0.18},
+    {"name":"Primary Bath+Closet", "dim":"Custom Shower", "x":0.41, "y":0.00, "w":0.59, "h":0.18}
+  ]
+}

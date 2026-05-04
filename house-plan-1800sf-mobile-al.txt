@@ -1,0 +1,95 @@
+TRIUMPH HOMES - CONCEPT PLAN SHEET
+Project: 1,800 SF Craftsman Home (Mobile, Alabama)
+Date: 2026-05-03
+Status: Concept design for pricing/layout discussion (not permit-ready construction drawings)
+
+============================================================
+1) SELECTED OPTIONS (OWNER CHOICES)
+============================================================
+1C  Exterior Style: Craftsman
+2A  Foundation: Slab-on-grade (raised 8-12 in recommended)
+3   Parking: 2-car carport (custom)
+4   Baths: Custom shower in primary; tub/shower combo in hall bath
+5A  Kitchen: Large island + walk-in pantry
+6   Flex: No flex room
+7A  Outdoor Living: 10 ft x 16 ft covered rear porch
+8A  Windows: Standard energy windows + shutters
+9A  Roof: Architectural shingles
+10B HVAC: 16+ SEER2 variable-speed system
+
+============================================================
+2) OVERALL DIMENSIONS / PROGRAM
+============================================================
+Heated area target: ~1,800 SF
+Main heated footprint target: ~64 ft W x 40 ft D (adjust as engineered)
+Carport (unheated): 22 ft x 24 ft
+Rear porch (unheated): 10 ft x 16 ft
+Front porch (unheated): ~6 ft deep Craftsman porch
+
+Program:
+- 3 Bedrooms / 2 Bathrooms
+- Split-bedroom configuration
+- Open living/kitchen/dining core
+- Laundry/mud entry from carport side
+- Walk-in pantry
+
+============================================================
+3) ROOM SCHEDULE (APPROXIMATE)
+============================================================
+Great Room....................18 x 19
+Kitchen / Dining..............17 x 16
+Walk-in Pantry................ 6 x  8
+Primary Bedroom...............14 x 15
+Primary Bath..................Custom shower + double vanity + private toilet room
+Primary Closet.................8 x 11
+Bedroom 2.....................11 x 12
+Bedroom 3.....................11 x 12
+Hall Bath.....................Tub/shower unit + vanity
+Laundry....................... 8 x  9
+Rear Covered Porch............10 x 16
+Carport.......................22 x 24
+
+============================================================
+4) CONCEPT FLOOR PLAN (NOT TO SCALE)
+============================================================
+
+                 FRONT PORCH (~6' DEEP)
+   -------------------------------------------------------------
+   |                         ENTRY                              |
+   |--------------------------+---------------------------------|
+   | BED 2 11x12              | BED 3 11x12                    |
+   |                          |                                 |
+   |--------------------------|------------------+--------------|
+   | HALL BATH (TUB/SHOWER)   |   HALL / LINEN   |  LAUNDRY 8x9 |
+   |--------------------------|-------------------|--------------|
+   |                                                      MUD/  |
+   |            GREAT ROOM 18x19                             |  |
+   |                                                         |  |
+   |---------------------------------------------------------+  |
+   |          KITCHEN + DINING 17x16      | PANTRY 6x8         |
+   |          LARGE ISLAND                |                    |
+   |--------------------------------------+--------------------|
+   | PRIMARY BED 14x15                    | PRIMARY BATH/CLOSET|
+   |                                      | SHOWER + DBL VTY   |
+   -------------------------------------------------------------
+                     REAR COVERED PORCH 10x16
+
+   SIDE CONNECTION: 2-CAR CARPORT 22x24 (adjacent to laundry/mud entry)
+
+============================================================
+5) MOBILE, AL BUILD NOTES (PRELIMINARY)
+============================================================
+- Keep slab elevated above final grade; target 8-12 in where feasible.
+- Confirm lot drainage strategy early (swales, gutters, downspout discharge).
+- Verify local wind/exposure requirements with engineer and code official.
+- Consider selective impact-rated openings as optional upgrade.
+- Final HVAC sizing requires Manual J/S/D calculations.
+
+============================================================
+6) DISCLAIMER
+============================================================
+This sheet is a concept/planning document only.
+Not sealed, not engineered, and not permit-ready.
+For construction: complete architectural, structural, MEP, and site plans are required.
+
+Prepared for: Ryland Howell / Triumph Homes

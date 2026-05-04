@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AestheticFlow AI - Recover 30% More Revenue for Your Med Spa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #0891b2 100%);
+            color: white;
+            padding: 1rem 0;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .cta-button {
+            background: #0891b2;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 4rem 0;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            color: #1e3a8a;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: #64748b;
+            margin-bottom: 1rem;
+        }
+download on the App Store
+Get it on Google Play
+        .hero-cta {
+            background: #1e3a8a;
+            color: white;
+            padding: 1rem 2rem;
+            font-size: 1.25rem;
+            border: none;
+        }
+        
+        .problem-section {
+            padding: 4rem 0;
+            background: white;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #1e3a8a;
+            margin-bottom: 2rem;
+        }
+        
+        .problems-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .problem-card {
+            background: #f8fafc;
+            padding: 2rem;
+            border-radius: 10px;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .problem-card h3 {
+            color: #dc2626;
+            margin-bottom: 1rem;
+        }
+        
+        .solution-section {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 4rem 0;
+        }
+        
+        .solution-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .solution-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .solution-icon {
+            width: 60px;
+            height: 60px;
+            background: #0891b2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .calculator-section {
+            background: white;
+            padding: 4rem 0;
+            text-align: center;
+        }
+        
+        .calculator {
+            background: #f8fafc;
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .calculator input {
+            width: 100%;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border: 1px solid #ddd;
+download on the App Store
+Get it on Google Play
+            border-radius: 5px;
+        }
+        
+        .calculator button {
+            background: #0891b2;
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        
+        #calculator-result {
+download on the App Store
+Get it on Google Play
+            margin-top: 1rem;
+            padding: 1.5rem;
+            background: #dcfce7;
+            border-radius: 5px;
+            border: 1px solid #16a34a;
+            display: none;
+        }
+        
+        .pricing-section {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 4rem 0;
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .pricing-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pricing-card.featured {
+            border: 3px solid #0891b2;
+            transform: scale(1.05);
+        }
+        
+        .price {
+            font-size: 3rem;
+            color: #1e3a8a;
+            font-weight: bold;
+        }
+        
+        .guarantee {
+            background: #dcfce7;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            margin: 3rem 0;
+            border: 2px solid #16a34a;
+        }
+        
+        footer {
+            background: #1e3a8a;
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">AestheticFlow AI</div>
+                <a href="#calculator" class="cta-button">Calculate Your Lost Revenue</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Med Spa Owners: <br>Stop Losinging 30% of Your Revenue Down the Drain</h1>
+            <p class="hero-subtitle">Our AI automation recovers missed calls, books appointments, and follows up with leads 24/7 - so you focus on what you do best.</p>
+            <a href="#calculator" class="cta-button hero-cta">Find Out How Much You're Leaving on the Table</a>
+        </div>
+    </section>
+
+    <section class="problem-section">
+        <div class="container">
+            <h2 class="section-title">Every Hung Up Call Costs Another Client</h2>
+            <p style="text-align: center; font-size: 1.2rem; color: #64748b;">Med spa owners lose $100,000+ per year because there's nobody to answer the phone when clients call.</p>
+            
+            <div class="problems-grid">
+                <div class="problem-card">
+                    <h3>🚫 Missed Phone Calls</h3>
+                    <p>67% of potential clients who call med spas hang up instead of leaving a voicemail. They call your competitor next.</p>
+                </div>
+                <div class="problem-card">
+                    <h3>🚫 No After-Hours Support</h3>
+                    <p>Most appointment requests happen before 9am and after 6pm - when your staff is gone.</p>
+                </div>
+                <div class="problem-card">
+                    <h3>🚫 Lukewarm Follow Up</h3>
+                    <p>It takes 5-7 touchpoints to book a consultation, but your team only follows up once or twice.</p>
+                </div>
+                <div class="problem-card">
+                    <h3>🚫 Cancelation Chaos</h3>
+                    <p>Last-minute cancelations leave holes in your schedule that could've been filled with waitlist clients.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="solution-section">
+        <div class="container">
+            <h2 class="section-title">One System Turns Every Ring Into Revenue</h2>
+            
+            <div class="solution-grid">
+                <div class="solution-card">
+                    <div class="solution-icon">📞</div>
+                    <h3>Immediate Text-Back</h3>
+                    <p>Missed call? Our AI texts back in 30 seconds with available times and a booking link.</p>
+                </div>
+                <div class="solution-card">
+                    <div class="solution-icon">🤖</div>
+                    <h3>Smart Follow-Up</h3>
+                    <p>AI follows up with leads 5-7 times over 2 weeks using text messages that feel human.</p>
+                </div>
+                <div class="solution-card">
+                    <div class="solution-icon">📅</div>
+                    <h3>Auto-Scheduling</h3>
+                    <p>Fills canceled automatically by contacting waitlist clients with instant booking.</p>
+                </div>
+                <div class="solution-card">
+                    <div class="solution-icon">⭐</div>
+                    <h3>Review Generation</h3>
+                    <p>Automatically requests Google reviews after appointments to boost your rankings.</p>
+                </GUI>
+            </div>
+        </div>
+    </section>
+
+    <section class="calculator-section" id="calculator">
+        <div class="container">
+            <h2 class="section-title">Calculate Your Much Revenue Have You Lost This Month?</h2>
+            <p style="font-size: 1.1rem; color: #64748b; margin-bottom: 2rem;">Plug in your numbers to see exactly how much money our automation could recover.</p>
+            
+            <div class="calculator">
+                <div style="margin-bottom: 1.5rem;">
+                    <label>How missed calls happen each week?</label>
+                    <input type="number" id="missed-calls" placeholder="Example: 15" min="0">
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label>What's your average appointment value?</label>
+                    <input type="number" id="appointment-value" placeholder="Example: 350" min="0">
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label>What percentage of callers typically book?</label>
+                    <input type="number" id="conversion-rate" placeholder="Example: 60" min="0" max="100">
+                </div>
+                <button onclick="calculateLostRevenue()">Show My Lost Revenue</button>
+                <div id="calculator-result"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="pricing-section">
+        <div class="container">
+            <h2 class="section-title">Choose Your Plan - Start Recovering Revenue in 7 Days</h2>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Starter</h3>
+                    <div class="price">$297/mo</div>
+                    <p>Up to 100 interactions per month</p>
+                    <ul style="text-align: left; margin: 1rem 0;">
+                        <li>✅ Missed call text-backs</li>
+nd on Google Play</manifest>
+                        <li>✅ Basic appointment scheduling</li>
+d on Google Play</manifest>
+                        <li>✅ Email support</li>
+                    </ul>
+                    <a href="#contact" class="cta-button">Start Free Trial</a>
+                </div>
+                
+                <div class="pricing-card featured">
+                    <h3>Growth (Most Popular)</h3>
+                    <div class="price">$497/mo</div>
+                    <p>Up to 500 interactions per month</p>
+                    <ul style="text-align: left; margin: 1rem 0;">
+                        <li>✅ Everything in Starter</li>
+                        <li>✅ Review request automation</li>
+                        <li>✅ Cancelation backfill</li>
+                        <li>✅ Phone support</li>
+                        <li>✅ Monthly performance reports</li>
+                    </ul>
+                    <a href="#contact" class="cta-button">Start Free Trial</a>
+                </div>
+                
+                <div class="pricing-card">
+                    <h3>Scale</h3>
+                    <div class="price">$997/mo</div>
+                    <p>Unlimited interactions + advanced features</p>
+                    <ul style="text-align: left; margin: 1rem 0;">
+                        <li>✅ Everything in Growth</li>
+                        <li>✅ Custom automation sequences</li>
+                        <li>✅ Multi-location management</li>
+                        <li>✅ Priority support</li>
+                        <li>✅ Advanced analytics dashboard</li>
+                    </ul>
+                    <a href="#contact" class="cta-button">Start Free Trial</a>
+                </div>
+            </div>
+            
+            <div class="guarantee">
+                <h3>🎯 30% Revenue Increase Guarantee</h3>
+                <p>If you don't see at least 30% more appointments booked within 90 days, we work for free until you do.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" style="background: white; padding: 4rem 0; text-align: center;">
+        <div class="container">
+            <h2 style="font-size: 2.5rem; color: #1e3a8a; margin-bottom 2rem;">Ready to Stop Booking Leads Slip Away?</h2>
+            <p style="font-size: 1.2rem; color: #64748b; margin-bottom: 2rem;">Book a 15-minute demo to see exactly how much revenue we can recover for your practice.</p>
+            <a href="mailto:demo@aestheticflow.ai" class="cta-button hero-cta" style="display: inline-block;">Book My Demo</a>
+            <p style="margin-top: 1rem; color: #64748b;">or call/text (251) 555-FLOW</p>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 AestheticFlow AI. Serving Mobile & Baldwin County, Alabama.</p>
+        </div>
+    </footer>
+
+    <script>
+        function calculateLostRevenue() {
+            const missedCalls = document.getElementById('missed-calls').value;
+            const appointmentValue = document.getElementById('appointment-value').value;
+            const conversionRate = document.getElementById('conversion-rate').value;
+            
+            if (!missedCalls || !appointmentValue || !conversionRate) {
+                alert('Please fill in all fields.');
+            }
+            
+            const monthlyLostCalls = missedCalls * 4.3; // Average weeks per month
+            const potentialBookings = monthlyLostCalls * (conversionRate / 100);
+            const lostRevenue = potentialBookings * appointmentValue;
+            const yearlyLoss = lostRevenue * 12;
+            
+            const resultDiv = document.getElementById('calculator-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <h3>Your Lost Revenue Breakdown:</h3>
+                <p><strong>Monthly Lost Revenue: $${lostRevenue.toLocaleString()}</strong></p>
+                <p><strong>Annual Loss: $${yearlyLoss.toLocaleString()}</strong></p>
+                <p>With our automation, you could recover 60-80% of this lost revenue.</p>
+                <strong>Ready to get that money back? <a href="#contact">Book a demo</a></strong>
+            `;
+        }
+    </script>
+</body>
+</html>
