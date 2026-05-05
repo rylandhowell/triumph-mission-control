@@ -11,7 +11,15 @@ type AssignedTask = {
   assignedBy: "Ryland" | "JohnHowell";
 };
 
+type PersonalChecklistItem = {
+  id: string;
+  text: string;
+  done: boolean;
+};
+
 const ASSIGNED_TASKS_KEY = "mission-assigned-tasks";
+const RYAN_CHECKLIST_KEY = "mission-ryan-personal-checklist";
+const ALLOWED_ASSIGNERS: Array<AssignedTask["assignedBy"]> = ["Ryland", "JohnHowell"];
 
 export function DashboardClient({
   jobs,
@@ -23,6 +31,9 @@ export function DashboardClient({
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newAssignee, setNewAssignee] = useState("Ryland");
   const [newAssignedBy, setNewAssignedBy] = useState<"Ryland" | "JohnHowell">("Ryland");
+  const [ryanJobId, setRyanJobId] = useState<string>(jobs[0]?.id ?? "");
+  const [ryanNewItem, setRyanNewItem] = useState("");
+  const [ryanChecklist, setRyanChecklist] = useState<Record<string, PersonalChecklistItem[]>>({});
 
   const selectedJob = selectedJobId === "all" ? null : jobs.find((job) => job.id === selectedJobId) ?? null;
 
@@ -38,9 +49,21 @@ export function DashboardClient({
   useEffect(() => {
     try {
       const raw = localStorage.getItem(ASSIGNED_TASKS_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) setAssignedTasks(parsed);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          const safe = parsed.filter((t) => t && ALLOWED_ASSIGNERS.includes(t.assignedBy));
+          setAssignedTasks(safe);
+        }
+      }
+
+      const ryanRaw = localStorage.getItem(RYAN_CHECKLIST_KEY);
+      if (ryanRaw) {
+        const parsedRyan = JSON.parse(ryanRaw);
+        if (parsedRyan && typeof parsedRyan === "object") {
+          setRyanChecklist(parsedRyan as Record<string, PersonalChecklistItem[]>);
+        }
+      }
     } catch {
       // ignore
     }
@@ -49,6 +72,10 @@ export function DashboardClient({
   useEffect(() => {
     localStorage.setItem(ASSIGNED_TASKS_KEY, JSON.stringify(assignedTasks));
   }, [assignedTasks]);
+
+  useEffect(() => {
+    localStorage.setItem(RYAN_CHECKLIST_KEY, JSON.stringify(ryanChecklist));
+  }, [ryanChecklist]);
 
   const metrics = useMemo(() => {
     const allTasks = filteredJobs.flatMap((job) => job.tasks);
@@ -194,6 +221,7 @@ export function DashboardClient({
             >
               <option value="Ryland">Ryland</option>
               <option value="JohnHowell">JohnHowell</option>
+              <option value="RyanBarnhill">RyanBarnhill</option>
             </select>
             <select
               value={newAssignedBy}
@@ -208,6 +236,7 @@ export function DashboardClient({
               onClick={() => {
                 const title = newTaskTitle.trim();
                 if (!title) return;
+                if (!ALLOWED_ASSIGNERS.includes(newAssignedBy)) return;
                 setAssignedTasks((prev) => [
                   {
                     id: crypto.randomUUID(),
@@ -241,6 +270,94 @@ export function DashboardClient({
                 </button>
               </div>
             ))}
+          </div>
+        </div>
+
+        <div className="mission-panel p-5 sm:p-6">
+          <div className="mb-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">RyanBarnhill</p>
+            <h3 className="mt-1 text-xl font-semibold">Personal Checklist</h3>
+          </div>
+
+          <div className="mb-3 grid gap-2 md:grid-cols-[1fr_2fr_auto]">
+            <select
+              value={ryanJobId}
+              onChange={(e) => setRyanJobId(e.target.value)}
+              className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm"
+            >
+              {jobs.map((job) => (
+                <option key={job.id} value={job.id}>{job.name}</option>
+              ))}
+            </select>
+            <input
+              value={ryanNewItem}
+              onChange={(e) => setRyanNewItem(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter") return;
+                e.preventDefault();
+                const text = ryanNewItem.trim();
+                if (!text || !ryanJobId) return;
+                setRyanChecklist((prev) => ({
+                  ...prev,
+                  [ryanJobId]: [{ id: crypto.randomUUID(), text, done: false }, ...(prev[ryanJobId] ?? [])],
+                }));
+                setRyanNewItem("");
+              }}
+              placeholder="Add checklist item..."
+              className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const text = ryanNewItem.trim();
+                if (!text || !ryanJobId) return;
+                setRyanChecklist((prev) => ({
+                  ...prev,
+                  [ryanJobId]: [{ id: crypto.randomUUID(), text, done: false }, ...(prev[ryanJobId] ?? [])],
+                }));
+                setRyanNewItem("");
+              }}
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
+            >
+              Add
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            {(ryanChecklist[ryanJobId] ?? []).map((item) => (
+              <label key={item.id} className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+                <span className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={item.done}
+                    onChange={(e) => {
+                      const done = e.target.checked;
+                      setRyanChecklist((prev) => ({
+                        ...prev,
+                        [ryanJobId]: (prev[ryanJobId] ?? []).map((x) => (x.id === item.id ? { ...x, done } : x)),
+                      }));
+                    }}
+                    className="h-4 w-4 accent-emerald-500"
+                  />
+                  <span className={`text-sm ${item.done ? "text-zinc-500 line-through" : "text-zinc-200"}`}>{item.text}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRyanChecklist((prev) => ({
+                      ...prev,
+                      [ryanJobId]: (prev[ryanJobId] ?? []).filter((x) => x.id !== item.id),
+                    }));
+                  }}
+                  className="rounded border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-xs text-rose-200"
+                >
+                  Remove
+                </button>
+              </label>
+            ))}
+            {(ryanChecklist[ryanJobId] ?? []).length === 0 ? (
+              <p className="text-sm text-zinc-500">No items yet for this house.</p>
+            ) : null}
           </div>
         </div>
       </section>
