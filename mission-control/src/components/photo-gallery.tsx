@@ -23,6 +23,7 @@ export function PhotoGallery({ jobId }: PhotoGalleryProps) {
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [newCaption, setNewCaption] = useState("");
   const [newCategory, setNewCategory] = useState("Site");
+  const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load photos from localStorage
@@ -44,27 +45,69 @@ export function PhotoGallery({ jobId }: PhotoGalleryProps) {
   useEffect(() => {
     if (!isLoaded) return;
     const storageKey = `photos-${jobId}`;
-    localStorage.setItem(storageKey, JSON.stringify(photos));
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(photos));
+      setError("");
+    } catch {
+      setError("Photo storage is full. Delete a few photos or upload smaller ones.");
+    }
   }, [photos, jobId, isLoaded]);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const fileToDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => resolve(String(event.target?.result ?? ""));
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+
+  const compressImage = (src: string) =>
+    new Promise<string>((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const max = 1600;
+        let { width, height } = img;
+        if (width > max || height > max) {
+          const ratio = Math.min(max / width, max / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve(src);
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.82));
+      };
+      img.onerror = () => resolve(src);
+      img.src = src;
+    });
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const newPhoto: Photo = {
-          id: `photo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          url: event.target?.result as string,
+    try {
+      const uploaded: Photo[] = [];
+      for (const file of Array.from(files)) {
+        const raw = await fileToDataUrl(file);
+        const optimized = await compressImage(raw);
+        uploaded.push({
+          id: `photo-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+          url: optimized,
           caption: newCaption || file.name,
           date: new Date().toLocaleDateString(),
           category: newCategory,
-        };
-        setPhotos((prev) => [...prev, newPhoto]);
-      };
-      reader.readAsDataURL(file);
-    });
+        });
+      }
+
+      setPhotos((prev) => [...prev, ...uploaded]);
+      setError("");
+    } catch {
+      setError("Upload failed. Try again.");
+    }
 
     // Reset
     setNewCaption("");
@@ -136,6 +179,12 @@ export function PhotoGallery({ jobId }: PhotoGalleryProps) {
           className="hidden"
         />
       </div>
+
+      {error ? (
+        <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
+          {error}
+        </div>
+      ) : null}
 
       {/* Category filter */}
       <div className="flex flex-wrap gap-2">
