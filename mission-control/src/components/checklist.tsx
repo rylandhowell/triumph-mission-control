@@ -208,6 +208,12 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
   const completedCount = checkedItems.size;
   const totalCount = checklistItems.length;
   const progress = totalCount ? Math.round((completedCount / totalCount) * 100) : 0;
+  const displayItems = [...checklistItems].sort((a, b) => {
+    const aChecked = checkedItems.has(a.id);
+    const bChecked = checkedItems.has(b.id);
+    if (aChecked === bChecked) return 0;
+    return aChecked ? 1 : -1;
+  });
 
   return (
     <div className="space-y-4">
@@ -244,7 +250,8 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
 
       <div className="max-h-[60vh] overflow-y-auto rounded-xl border border-white/10 bg-black/20">
         <div className="divide-y divide-white/5">
-          {checklistItems.map((item, index) => {
+          {displayItems.map((item) => {
+            const index = checklistItems.findIndex((x) => x.id === item.id);
             const isChecked = checkedItems.has(item.id);
             return (
               <div key={item.id} className="px-4 py-2.5">
