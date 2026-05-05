@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { Job } from "@/lib/mission-data";
-import { sendTelegram, msgProgress, checkMilestone, msgMilestone } from "@/lib/telegram";
+import { useState, useEffect } from "react";
+import { Job, buildChecklist } from "@/lib/mission-data";
 
 interface EditableJobProps {
   job: Job;
@@ -32,7 +31,7 @@ export function EditableJob({ job }: EditableJobProps) {
     budget: job.budget,
   });
   const [isLoaded, setIsLoaded] = useState(false);
-  const prevProgress = useRef(job.progress);
+  const [checklistProgress, setChecklistProgress] = useState<number | null>(null);
 
   useEffect(() => {
     const storageKey = `job-${job.id}-data`;
@@ -41,9 +40,6 @@ export function EditableJob({ job }: EditableJobProps) {
       try {
         const parsed = JSON.parse(saved);
         setData((prev) => ({ ...prev, ...parsed }));
-        if (parsed.progress !== undefined) {
-          prevProgress.current = parsed.progress;
-        }
       } catch {
         // ignore
       }
@@ -57,17 +53,32 @@ export function EditableJob({ job }: EditableJobProps) {
     localStorage.setItem(storageKey, JSON.stringify(data));
   }, [data, job.id, isLoaded]);
 
-  const handleSave = () => {
-    // Send progress update if progress changed
-    if (data.progress !== prevProgress.current) {
-      sendTelegram(msgProgress(data.name, data.progress, data.stage));
+  useEffect(() => {
+    let active = true;
+    const total = buildChecklist.length || 1;
 
-      const milestone = checkMilestone(prevProgress.current, data.progress);
-      if (milestone) {
-        sendTelegram(msgMilestone(data.name, milestone));
+    const load = async () => {
+      try {
+        const res = await fetch(`/api/checklist-state?jobId=${encodeURIComponent(job.id)}`, { cache: "no-store" });
+        if (!res.ok) return;
+        const payload = await res.json();
+        const checked = Array.isArray(payload?.checked) ? payload.checked.length : 0;
+        const pct = Math.round((checked / total) * 100);
+        if (active) setChecklistProgress(pct);
+      } catch {
+        // ignore
       }
-      prevProgress.current = data.progress;
-    }
+    };
+
+    void load();
+    const iv = setInterval(load, 1000);
+    return () => {
+      active = false;
+      clearInterval(iv);
+    };
+  }, [job.id]);
+
+  const handleSave = () => {
     setIsEditing(false);
   };
 
@@ -150,13 +161,12 @@ export function EditableJob({ job }: EditableJobProps) {
           <div>
             <label className="block text-sm text-zinc-500">Progress (%)</label>
             <input
-              type="number"
-              min="0"
-              max="100"
-              value={data.progress}
-              onChange={(e) => handleChange("progress", parseInt(e.target.value) || 0)}
-              className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-white outline-none focus:border-emerald-500"
+              type="text"
+              value={checklistProgress ?? data.progress}
+              readOnly
+              className="mt-1 w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-zinc-300"
             />
+            <p className="mt-1 text-xs text-zinc-500">Auto-calculated from build checklist.</p>
           </div>
           <div className="sm:col-span-2">
             <label className="block text-sm text-zinc-500">Next Milestone</label>
@@ -201,12 +211,12 @@ export function EditableJob({ job }: EditableJobProps) {
         </div>
         <div>
           <p className="text-sm text-zinc-500">Progress</p>
-          <p className="mt-1 text-xl font-semibold">{data.progress}%</p>
+          <p className="mt-1 text-xl font-semibold">{checklistProgress ?? data.progress}%</p>
         </div>
       </div>
 
       <div className="h-3 overflow-hidden rounded-full bg-white/10">
-        <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${data.progress}%` }} />
+        <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${checklistProgress ?? data.progress}%` }} />
       </div>
 
       <p className="text-sm text-zinc-400">Next milestone: {data.next}</p>

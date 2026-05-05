@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import type { Job } from "@/lib/mission-data";
+import { buildChecklist, type Job } from "@/lib/mission-data";
 
 type AssignedTask = {
   id: string;
@@ -38,6 +38,7 @@ export function DashboardClient({
   const [ryanJobId, setRyanJobId] = useState<string>(jobs[0]?.id ?? "");
   const [ryanNewItem, setRyanNewItem] = useState("");
   const [ryanChecklist, setRyanChecklist] = useState<Record<string, PersonalChecklistItem[]>>({});
+  const [jobProgressById, setJobProgressById] = useState<Record<string, number>>({});
 
   const selectedJob = selectedJobId === "all" ? null : jobs.find((job) => job.id === selectedJobId) ?? null;
 
@@ -83,6 +84,38 @@ export function DashboardClient({
     localStorage.setItem(`${PERSONAL_CHECKLIST_KEY_PREFIX}-${checklistOwner}`, JSON.stringify(ryanChecklist));
   }, [ryanChecklist]);
 
+  useEffect(() => {
+    let active = true;
+    const total = buildChecklist.length || 1;
+
+    const loadProgress = async () => {
+      try {
+        const entries = await Promise.all(
+          jobs.map(async (job) => {
+            const res = await fetch(`/api/checklist-state?jobId=${encodeURIComponent(job.id)}`, { cache: "no-store" });
+            if (!res.ok) return [job.id, job.progress] as const;
+            const payload = await res.json();
+            const checked = Array.isArray(payload?.checked) ? payload.checked.length : 0;
+            return [job.id, Math.round((checked / total) * 100)] as const;
+          }),
+        );
+        if (!active) return;
+        setJobProgressById(Object.fromEntries(entries));
+      } catch {
+        // ignore
+      }
+    };
+
+    void loadProgress();
+    const iv = setInterval(loadProgress, 1000);
+    return () => {
+      active = false;
+      clearInterval(iv);
+    };
+  }, [jobs]);
+
+  const getJobProgress = (job: Job) => jobProgressById[job.id] ?? job.progress;
+
   const metrics = useMemo(() => {
     const allTasks = filteredJobs.flatMap((job) => job.tasks);
     return {
@@ -90,10 +123,10 @@ export function DashboardClient({
       atRisk: allTasks.filter((task) => task.status === "At risk").length,
       dueToday: allTasks.filter((task) => task.due === "Today").length,
       avgProgress: filteredJobs.length
-        ? Math.round(filteredJobs.reduce((sum, job) => sum + job.progress, 0) / filteredJobs.length)
+        ? Math.round(filteredJobs.reduce((sum, job) => sum + getJobProgress(job), 0) / filteredJobs.length)
         : 0,
     };
-  }, [filteredJobs]);
+  }, [filteredJobs, jobProgressById]);
 
   return (
     <>
@@ -177,10 +210,10 @@ export function DashboardClient({
                     <div className="min-w-56 lg:text-right">
                       <div className="mb-2 flex items-center justify-between text-sm text-zinc-400 lg:justify-end lg:gap-3">
                         <span>Progress</span>
-                        <span>{job.progress}%</span>
+                        <span>{getJobProgress(job)}%</span>
                       </div>
                       <div className="h-2 overflow-hidden rounded-full bg-white/10">
-                        <div className={`h-full rounded-full ${job.color}`} style={{ width: `${job.progress}%` }} />
+                        <div className={`h-full rounded-full ${job.color}`} style={{ width: `${getJobProgress(job)}%` }} />
                       </div>
                     </div>
                   </div>
