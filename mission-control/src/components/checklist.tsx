@@ -45,7 +45,9 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
   useEffect(() => {
     let active = true;
     const checkedKey = `checklist-${jobId}`;
+    const backupKey = `checklist-backup-${jobId}`;
     const itemsKey = `checklist-items-${jobId}`;
+    let localSet = new Set<string>();
 
     const savedItems = localStorage.getItem(itemsKey);
     if (savedItems) {
@@ -63,7 +65,7 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
     if (localRaw) {
       try {
         const parsed = JSON.parse(localRaw);
-        const localSet = new Set<string>(Array.isArray(parsed) ? parsed : []);
+        localSet = new Set<string>(Array.isArray(parsed) ? parsed : []);
         setCheckedItems(localSet);
         prevCount.current = localSet.size;
       } catch {
@@ -77,11 +79,39 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
         if (!res.ok) return;
         const data = await res.json();
         const parsed = Array.isArray(data?.checked) ? data.checked : [];
-        const set = new Set<string>(parsed);
+        const serverSet = new Set<string>(parsed);
+
         if (active) {
-          setCheckedItems(set);
-          prevCount.current = set.size;
-          localStorage.setItem(checkedKey, JSON.stringify(Array.from(set)));
+          const backupRaw = localStorage.getItem(backupKey);
+          let backupSet = new Set<string>();
+          if (backupRaw) {
+            try {
+              const b = JSON.parse(backupRaw);
+              backupSet = new Set<string>(Array.isArray(b) ? b : []);
+            } catch {
+              // ignore
+            }
+          }
+
+          if (serverSet.size === 0 && localSet.size > 0) {
+            setCheckedItems(localSet);
+            prevCount.current = localSet.size;
+            localStorage.setItem(checkedKey, JSON.stringify(Array.from(localSet)));
+            localStorage.setItem(backupKey, JSON.stringify(Array.from(localSet)));
+            void pushChecklist(Array.from(localSet), ++writeSeqRef.current);
+          } else if (serverSet.size === 0 && backupSet.size > 0) {
+            setCheckedItems(backupSet);
+            prevCount.current = backupSet.size;
+            localStorage.setItem(checkedKey, JSON.stringify(Array.from(backupSet)));
+            void pushChecklist(Array.from(backupSet), ++writeSeqRef.current);
+          } else {
+            setCheckedItems(serverSet);
+            prevCount.current = serverSet.size;
+            localStorage.setItem(checkedKey, JSON.stringify(Array.from(serverSet)));
+            if (serverSet.size > 0) {
+              localStorage.setItem(backupKey, JSON.stringify(Array.from(serverSet)));
+            }
+          }
         }
       } catch {
         // ignore
@@ -109,6 +139,9 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
     const checked = Array.from(checkedItems);
     const seq = ++writeSeqRef.current;
     localStorage.setItem(`checklist-${jobId}`, JSON.stringify(checked));
+    if (checked.length > 0) {
+      localStorage.setItem(`checklist-backup-${jobId}`, JSON.stringify(checked));
+    }
     void pushChecklist(checked, seq);
   }, [checkedItems, isLoaded, jobId]);
 
