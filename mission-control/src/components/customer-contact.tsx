@@ -11,6 +11,7 @@ type CustomerContact = {
 type CustomerContactsState = {
   primary: CustomerContact;
   secondary: CustomerContact;
+  showSecondary: boolean;
 };
 
 const emptyContact: CustomerContact = {
@@ -22,7 +23,15 @@ const emptyContact: CustomerContact = {
 const emptyState: CustomerContactsState = {
   primary: { ...emptyContact },
   secondary: { ...emptyContact },
+  showSecondary: false,
 };
+
+function formatPhone(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 10);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
 
 export function CustomerContactCard({ jobId }: { jobId: string }) {
   const [contacts, setContacts] = useState<CustomerContactsState>(emptyState);
@@ -43,6 +52,7 @@ export function CustomerContactCard({ jobId }: { jobId: string }) {
             email: parsed.email || "",
           },
           secondary: { ...emptyContact },
+          showSecondary: false,
         });
         return;
       }
@@ -58,6 +68,7 @@ export function CustomerContactCard({ jobId }: { jobId: string }) {
           phone: parsed.secondary?.phone || "",
           email: parsed.secondary?.email || "",
         },
+        showSecondary: !!parsed.showSecondary || !!parsed.secondary?.name || !!parsed.secondary?.phone || !!parsed.secondary?.email,
       });
     } catch {
       // ignore
@@ -95,8 +106,8 @@ export function CustomerContactCard({ jobId }: { jobId: string }) {
             />
             <input
               value={contacts.primary.phone}
-              onChange={(e) => setField("primary", "phone", e.target.value)}
-              placeholder="Phone number"
+              onChange={(e) => setField("primary", "phone", formatPhone(e.target.value))}
+              placeholder="(251) 555-1234"
               className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm"
             />
             <input
@@ -108,29 +119,41 @@ export function CustomerContactCard({ jobId }: { jobId: string }) {
           </div>
         </div>
 
-        <div>
-          <p className="mb-2 text-sm text-zinc-400">Contact 2</p>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <input
-              value={contacts.secondary.name}
-              onChange={(e) => setField("secondary", "name", e.target.value)}
-              placeholder="Name"
-              className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm"
-            />
-            <input
-              value={contacts.secondary.phone}
-              onChange={(e) => setField("secondary", "phone", e.target.value)}
-              placeholder="Phone number"
-              className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm"
-            />
-            <input
-              value={contacts.secondary.email}
-              onChange={(e) => setField("secondary", "email", e.target.value)}
-              placeholder="Email"
-              className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm"
-            />
+        {!contacts.showSecondary ? (
+          <div className="flex justify-start">
+            <button
+              type="button"
+              onClick={() => setContacts((prev) => ({ ...prev, showSecondary: true }))}
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
+            >
+              Add Contact
+            </button>
           </div>
-        </div>
+        ) : (
+          <div>
+            <p className="mb-2 text-sm text-zinc-400">Contact 2</p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <input
+                value={contacts.secondary.name}
+                onChange={(e) => setField("secondary", "name", e.target.value)}
+                placeholder="Name"
+                className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm"
+              />
+              <input
+                value={contacts.secondary.phone}
+                onChange={(e) => setField("secondary", "phone", formatPhone(e.target.value))}
+                placeholder="(251) 555-1234"
+                className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm"
+              />
+              <input
+                value={contacts.secondary.email}
+                onChange={(e) => setField("secondary", "email", e.target.value)}
+                placeholder="Email"
+                className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm"
+              />
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
