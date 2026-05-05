@@ -20,12 +20,14 @@ export function JobSubsPicker({ jobId }: { jobId: string }) {
   useEffect(() => {
     let active = true;
     const localKey = `job-subs-${jobId}`;
+    let localSet = new Set<string>();
 
     const localRaw = localStorage.getItem(localKey);
     if (localRaw) {
       try {
         const parsed = JSON.parse(localRaw);
-        setSelected(new Set(Array.isArray(parsed) ? parsed : []));
+        localSet = new Set(Array.isArray(parsed) ? parsed : []);
+        setSelected(localSet);
       } catch {
         // ignore
       }
@@ -46,9 +48,12 @@ export function JobSubsPicker({ jobId }: { jobId: string }) {
           Array.isArray(selectedData.subIds) ? selectedData.subIds.filter((x: unknown): x is string => typeof x === "string") : []
         );
         const recovery = new Set<string>(recoveryJobSubsByJob[jobId] || []);
-        const next = serverNext.size === 0 && recovery.size > 0 ? recovery : serverNext;
+        const next = serverNext.size === 0
+          ? (localSet.size > 0 ? localSet : recovery)
+          : serverNext;
         setSubs(Array.isArray(subsData.rows) ? subsData.rows : []);
         setSelected(next);
+        selectedRef.current = next;
         localStorage.setItem(localKey, JSON.stringify(Array.from(next)));
       } finally {
         if (active) setLoaded(true);
