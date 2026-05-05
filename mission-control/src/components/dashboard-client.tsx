@@ -1,8 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Job } from "@/lib/mission-data";
+
+type AssignedTask = {
+  id: string;
+  title: string;
+  assignee: string;
+  assignedBy: "Ryland" | "JohnHowell";
+};
+
+const ASSIGNED_TASKS_KEY = "mission-assigned-tasks";
 
 export function DashboardClient({
   jobs,
@@ -10,6 +19,10 @@ export function DashboardClient({
   jobs: Job[];
 }) {
   const [selectedJobId, setSelectedJobId] = useState<string>("all");
+  const [assignedTasks, setAssignedTasks] = useState<AssignedTask[]>([]);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newAssignee, setNewAssignee] = useState("Ryland");
+  const [newAssignedBy, setNewAssignedBy] = useState<"Ryland" | "JohnHowell">("Ryland");
 
   const selectedJob = selectedJobId === "all" ? null : jobs.find((job) => job.id === selectedJobId) ?? null;
 
@@ -21,6 +34,21 @@ export function DashboardClient({
       .slice(0, 4),
     [filteredJobs],
   );
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(ASSIGNED_TASKS_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) setAssignedTasks(parsed);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(ASSIGNED_TASKS_KEY, JSON.stringify(assignedTasks));
+  }, [assignedTasks]);
 
   const metrics = useMemo(() => {
     const allTasks = filteredJobs.flatMap((job) => job.tasks);
@@ -141,6 +169,76 @@ export function DashboardClient({
                   <span className="rounded-full border border-white/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-zinc-400">{task.status}</span>
                 </div>
                 <p className="mt-2 text-sm text-zinc-500">Due: {task.due}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mission-panel p-5 sm:p-6">
+          <div className="mb-5">
+            <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">Assigned Tasks</p>
+            <h3 className="mt-1 text-xl font-semibold">Assignments</h3>
+          </div>
+
+          <div className="mb-4 grid gap-2 md:grid-cols-4">
+            <input
+              value={newTaskTitle}
+              onChange={(e) => setNewTaskTitle(e.target.value)}
+              placeholder="Task"
+              className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm"
+            />
+            <select
+              value={newAssignee}
+              onChange={(e) => setNewAssignee(e.target.value)}
+              className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm"
+            >
+              <option value="Ryland">Ryland</option>
+              <option value="JohnHowell">JohnHowell</option>
+            </select>
+            <select
+              value={newAssignedBy}
+              onChange={(e) => setNewAssignedBy(e.target.value as "Ryland" | "JohnHowell")}
+              className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm"
+            >
+              <option value="Ryland">Assigned by Ryland</option>
+              <option value="JohnHowell">Assigned by JohnHowell</option>
+            </select>
+            <button
+              type="button"
+              onClick={() => {
+                const title = newTaskTitle.trim();
+                if (!title) return;
+                setAssignedTasks((prev) => [
+                  {
+                    id: crypto.randomUUID(),
+                    title,
+                    assignee: newAssignee,
+                    assignedBy: newAssignedBy,
+                  },
+                  ...prev,
+                ]);
+                setNewTaskTitle("");
+              }}
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
+            >
+              Assign
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {assignedTasks.map((task) => (
+              <div key={task.id} className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+                <div>
+                  <p className="font-medium text-white">{task.title}</p>
+                  <p className="text-sm text-zinc-400">Assigned to: {task.assignee}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAssignedTasks((prev) => prev.filter((x) => x.id !== task.id))}
+                  className="rounded border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-xs text-rose-200"
+                >
+                  Remove
+                </button>
               </div>
             ))}
           </div>
