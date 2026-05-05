@@ -46,6 +46,7 @@ export function SettingsClient() {
   useEffect(() => {
     localStorage.setItem(`settings-${profile}`, JSON.stringify(settings));
     localStorage.setItem("mission-theme", settings.theme);
+    localStorage.setItem("mission-active-profile", profile);
     document.documentElement.classList.toggle("dark", settings.theme === "dark");
   }, [profile, settings]);
 

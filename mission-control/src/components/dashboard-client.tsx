@@ -18,7 +18,11 @@ type PersonalChecklistItem = {
 };
 
 const ASSIGNED_TASKS_KEY = "mission-assigned-tasks";
-const RYAN_CHECKLIST_KEY = "mission-ryan-personal-checklist";
+const PERSONAL_CHECKLIST_KEY_PREFIX = "mission-personal-checklist";
+
+function getChecklistOwnerKey() {
+  return localStorage.getItem("mission-active-profile") || "default";
+}
 const ALLOWED_ASSIGNERS: Array<AssignedTask["assignedBy"]> = ["Ryland", "JohnHowell"];
 
 export function DashboardClient({
@@ -57,7 +61,8 @@ export function DashboardClient({
         }
       }
 
-      const ryanRaw = localStorage.getItem(RYAN_CHECKLIST_KEY);
+      const checklistOwner = getChecklistOwnerKey();
+      const ryanRaw = localStorage.getItem(`${PERSONAL_CHECKLIST_KEY_PREFIX}-${checklistOwner}`);
       if (ryanRaw) {
         const parsedRyan = JSON.parse(ryanRaw);
         if (parsedRyan && typeof parsedRyan === "object") {
@@ -74,7 +79,8 @@ export function DashboardClient({
   }, [assignedTasks]);
 
   useEffect(() => {
-    localStorage.setItem(RYAN_CHECKLIST_KEY, JSON.stringify(ryanChecklist));
+    const checklistOwner = getChecklistOwnerKey();
+    localStorage.setItem(`${PERSONAL_CHECKLIST_KEY_PREFIX}-${checklistOwner}`, JSON.stringify(ryanChecklist));
   }, [ryanChecklist]);
 
   const metrics = useMemo(() => {
@@ -281,7 +287,6 @@ export function DashboardClient({
 
         <div className="mission-panel p-5 sm:p-6">
           <div className="mb-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">RyanBarnhill</p>
             <h3 className="mt-1 text-xl font-semibold">Personal Checklist</h3>
           </div>
 
