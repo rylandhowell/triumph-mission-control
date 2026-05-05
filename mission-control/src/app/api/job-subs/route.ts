@@ -1,20 +1,12 @@
 import { NextResponse } from "next/server";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { readJson, writeJson } from "@/lib/blob-state";
 
 type JobSubsState = Record<string, string[]>;
-
-const DATA_DIR = join(process.cwd(), "state");
-const DATA_FILE = join(DATA_DIR, "job-subs.json");
+const DATA_FILE = "state/job-subs.json";
 
 async function readState(): Promise<JobSubsState> {
-  try {
-    const raw = await readFile(DATA_FILE, "utf8");
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? (parsed as JobSubsState) : {};
-  } catch {
-    return {};
-  }
+  const parsed = await readJson<JobSubsState>(DATA_FILE, {});
+  return parsed && typeof parsed === "object" ? parsed : {};
 }
 
 export async function GET(req: Request) {
@@ -37,8 +29,7 @@ export async function POST(req: Request) {
     const state = await readState();
     state[jobId] = subIds;
 
-    await mkdir(DATA_DIR, { recursive: true });
-    await writeFile(DATA_FILE, JSON.stringify(state, null, 2), "utf8");
+    await writeJson(DATA_FILE, state);
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ ok: false }, { status: 400 });
