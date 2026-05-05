@@ -43,14 +43,17 @@ export function SubsClient() {
   const [quick, setQuick] = useState({ name: "", trade: "", phone: "", email: "" });
   const localKey = "subs-insurance-cache";
   const rowsRef = useRef<SubRecord[]>([]);
+  const writeSeqRef = useRef(0);
+  const ackSeqRef = useRef(0);
 
-  const pushRows = async (nextRows: SubRecord[]) => {
+  const pushRows = async (nextRows: SubRecord[], seq: number) => {
     try {
-      await fetch("/api/subs-insurance", {
+      const res = await fetch("/api/subs-insurance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rows: nextRows }),
       });
+      if (res.ok) ackSeqRef.current = Math.max(ackSeqRef.current, seq);
     } catch {
       // ignore
     }
@@ -73,7 +76,7 @@ export function SubsClient() {
           return type === "gl" ? { ...r, glExpires: data.expirationDate } : { ...r, wcExpires: data.expirationDate };
         });
         localStorage.setItem(localKey, JSON.stringify(next));
-        void pushRows(next);
+        void pushRows(next, ++writeSeqRef.current);
         return next;
       });
       setDirty(true);
@@ -132,7 +135,8 @@ export function SubsClient() {
 
         const current = JSON.stringify(rowsRef.current);
         const incoming = JSON.stringify(data.rows);
-        if (current !== incoming) {
+        const hasPending = ackSeqRef.current < writeSeqRef.current;
+        if (current !== incoming && !hasPending) {
           setRows(data.rows);
           localStorage.setItem(localKey, JSON.stringify(data.rows));
         }
@@ -167,7 +171,7 @@ export function SubsClient() {
     setRows((prev) => {
       const next = prev.map((r) => (r.id === id ? { ...r, [key]: value } : r));
       localStorage.setItem(localKey, JSON.stringify(next));
-      void pushRows(next);
+      void pushRows(next, ++writeSeqRef.current);
       return next;
     });
   };
@@ -188,7 +192,7 @@ export function SubsClient() {
               setRows((prev) => {
                 const next = [...prev, emptySub()];
                 localStorage.setItem(localKey, JSON.stringify(next));
-                void pushRows(next);
+                void pushRows(next, ++writeSeqRef.current);
                 return next;
               });
             }}
@@ -216,7 +220,7 @@ export function SubsClient() {
               setRows((prev) => {
                 const next = [{ ...emptySub(), name, trade: quick.trade.trim(), phone: quick.phone.trim(), email: quick.email.trim() }, ...prev];
                 localStorage.setItem(localKey, JSON.stringify(next));
-                void pushRows(next);
+                void pushRows(next, ++writeSeqRef.current);
                 return next;
               });
               setQuick({ name: "", trade: "", phone: "", email: "" });
@@ -234,7 +238,7 @@ export function SubsClient() {
               setRows((prev) => {
                 const next = [{ ...emptySub(), name, trade: quick.trade.trim(), phone: quick.phone.trim(), email: quick.email.trim() }, ...prev];
                 localStorage.setItem(localKey, JSON.stringify(next));
-                void pushRows(next);
+                void pushRows(next, ++writeSeqRef.current);
                 return next;
               });
               setQuick({ name: "", trade: "", phone: "", email: "" });
@@ -332,7 +336,7 @@ export function SubsClient() {
                       setRows((prev) => {
                         const next = prev.filter((x) => x.id !== r.id);
                         localStorage.setItem(localKey, JSON.stringify(next));
-                        void pushRows(next);
+                        void pushRows(next, ++writeSeqRef.current);
                         return next;
                       });
                     }}

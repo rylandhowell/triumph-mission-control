@@ -17,15 +17,17 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
   const canSave = useRef(false);
   const skipFirstSave = useRef(true);
   const checkedRef = useRef<Set<string>>(new Set());
-  const lastLocalWriteAt = useRef(0);
+  const writeSeqRef = useRef(0);
+  const ackSeqRef = useRef(0);
 
-  const pushChecklist = async (checked: string[]) => {
+  const pushChecklist = async (checked: string[], seq: number) => {
     try {
-      await fetch("/api/checklist-state", {
+      const res = await fetch("/api/checklist-state", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ jobId, checked }),
       });
+      if (res.ok) ackSeqRef.current = Math.max(ackSeqRef.current, seq);
     } catch {
       // ignore
     }
@@ -85,9 +87,9 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
     }
 
     const checked = Array.from(checkedItems);
-    lastLocalWriteAt.current = Date.now();
+    const seq = ++writeSeqRef.current;
     localStorage.setItem(`checklist-${jobId}`, JSON.stringify(checked));
-    void pushChecklist(checked);
+    void pushChecklist(checked, seq);
   }, [checkedItems, isLoaded]);
 
   useEffect(() => {
@@ -100,8 +102,8 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
         const server = new Set<string>(Array.isArray(data?.checked) ? data.checked : []);
         const local = new Set<string>(checkedRef.current);
         const same = server.size === local.size && Array.from(server).every((id) => local.has(id));
-        const justWroteLocally = Date.now() - lastLocalWriteAt.current < 2500;
-        if (!same && !justWroteLocally) {
+        const hasPending = ackSeqRef.current < writeSeqRef.current;
+        if (!same && !hasPending) {
           setCheckedItems(server);
           prevCount.current = server.size;
           localStorage.setItem(`checklist-${jobId}`, JSON.stringify(Array.from(server)));

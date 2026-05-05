@@ -13,7 +13,8 @@ export function JobSubsPicker({ jobId }: { jobId: string }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loaded, setLoaded] = useState(false);
   const selectedRef = useRef<Set<string>>(new Set());
-  const lastLocalWriteAt = useRef(0);
+  const writeSeqRef = useRef(0);
+  const ackSeqRef = useRef(0);
 
   useEffect(() => {
     let active = true;
@@ -73,8 +74,8 @@ export function JobSubsPicker({ jobId }: { jobId: string }) {
         );
         const local = selectedRef.current;
         const same = server.size === local.size && Array.from(server).every((id) => local.has(id));
-        const justWroteLocally = Date.now() - lastLocalWriteAt.current < 2500;
-        if (!same && !justWroteLocally) {
+        const hasPending = ackSeqRef.current < writeSeqRef.current;
+        if (!same && !hasPending) {
           setSelected(server);
           selectedRef.current = server;
           localStorage.setItem(`job-subs-${jobId}`, JSON.stringify(Array.from(server)));
@@ -92,13 +93,14 @@ export function JobSubsPicker({ jobId }: { jobId: string }) {
     [subs, selected]
   );
 
-  const pushJobSubs = async (subIds: string[]) => {
+  const pushJobSubs = async (subIds: string[], seq: number) => {
     try {
-      await fetch("/api/job-subs", {
+      const res = await fetch("/api/job-subs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ jobId, subIds }),
       });
+      if (res.ok) ackSeqRef.current = Math.max(ackSeqRef.current, seq);
     } catch {
       // ignore
     }
@@ -112,9 +114,9 @@ export function JobSubsPicker({ jobId }: { jobId: string }) {
     selectedRef.current = next;
 
     const subIds = Array.from(next);
-    lastLocalWriteAt.current = Date.now();
+    const seq = ++writeSeqRef.current;
     localStorage.setItem(`job-subs-${jobId}`, JSON.stringify(subIds));
-    void pushJobSubs(subIds);
+    void pushJobSubs(subIds, seq);
   };
 
   if (!loaded) return <p className="text-sm text-zinc-500">Loading sub assignments...</p>;
