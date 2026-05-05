@@ -26,17 +26,24 @@ export function SettingsClient() {
     const saved = localStorage.getItem(`settings-${profile}`);
     if (saved) {
       try {
-        setSettings({ ...defaultSettings, ...JSON.parse(saved) });
+        const next = { ...defaultSettings, ...JSON.parse(saved) } as UserSettings;
+        setSettings(next);
+        document.documentElement.classList.toggle("dark", next.theme === "dark");
         return;
       } catch {
         // ignore
       }
     }
-    setSettings(defaultSettings);
+    const theme = (localStorage.getItem("mission-theme") as UserSettings["theme"]) || defaultSettings.theme;
+    const next = { ...defaultSettings, theme };
+    setSettings(next);
+    document.documentElement.classList.toggle("dark", next.theme === "dark");
   }, [profile]);
 
   useEffect(() => {
     localStorage.setItem(`settings-${profile}`, JSON.stringify(settings));
+    localStorage.setItem("mission-theme", settings.theme);
+    document.documentElement.classList.toggle("dark", settings.theme === "dark");
   }, [profile, settings]);
 
   return (

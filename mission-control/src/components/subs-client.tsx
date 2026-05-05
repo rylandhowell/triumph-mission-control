@@ -141,31 +141,40 @@ export function SubsClient() {
           </button>
         </div>
 
-        <div className="mt-4 grid gap-2 sm:grid-cols-5">
+        <div className="mt-4 grid gap-2 sm:grid-cols-4">
           <input value={quick.name} onChange={(e) => setQuick((q) => ({ ...q, name: e.target.value }))} placeholder="Sub name" className="rounded border border-white/10 bg-black/30 px-3 py-2 text-sm" />
           <input value={quick.trade} onChange={(e) => setQuick((q) => ({ ...q, trade: e.target.value }))} placeholder="Trade" className="rounded border border-white/10 bg-black/30 px-3 py-2 text-sm" />
           <input value={quick.phone} onChange={(e) => setQuick((q) => ({ ...q, phone: e.target.value }))} placeholder="Phone" className="rounded border border-white/10 bg-black/30 px-3 py-2 text-sm" />
-          <input value={quick.email} onChange={(e) => setQuick((q) => ({ ...q, email: e.target.value }))} placeholder="Email" className="rounded border border-white/10 bg-black/30 px-3 py-2 text-sm" />
+          <input
+            value={quick.email}
+            onChange={(e) => setQuick((q) => ({ ...q, email: e.target.value }))}
+            placeholder="Email"
+            className="rounded border border-white/10 bg-black/30 px-3 py-2 text-sm"
+            onKeyDown={(e) => {
+              if (e.key !== "Enter") return;
+              e.preventDefault();
+              const name = quick.name.trim();
+              if (!name) return;
+              setDirty(true);
+              setRows((prev) => [{ ...emptySub(), name, trade: quick.trade.trim(), phone: quick.phone.trim(), email: quick.email.trim() }, ...prev]);
+              setQuick({ name: "", trade: "", phone: "", email: "" });
+            }}
+          />
+        </div>
+
+        <div className="mt-2 flex justify-end">
           <button
             type="button"
             onClick={() => {
-              if (!quick.name.trim()) return;
+              const name = quick.name.trim();
+              if (!name) return;
               setDirty(true);
-              setRows((prev) => [
-                {
-                  ...emptySub(),
-                  name: quick.name.trim(),
-                  trade: quick.trade.trim(),
-                  phone: quick.phone.trim(),
-                  email: quick.email.trim(),
-                },
-                ...prev,
-              ]);
+              setRows((prev) => [{ ...emptySub(), name, trade: quick.trade.trim(), phone: quick.phone.trim(), email: quick.email.trim() }, ...prev]);
               setQuick({ name: "", trade: "", phone: "", email: "" });
             }}
-            className="rounded bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-500"
+            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
           >
-            Quick add sub
+            Add Sub
           </button>
         </div>
       </section>
