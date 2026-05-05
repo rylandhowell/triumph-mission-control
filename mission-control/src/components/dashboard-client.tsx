@@ -2,30 +2,18 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import type { Job, ScheduleItem } from "@/lib/mission-data";
-
-function jobMatchesSchedule(item: ScheduleItem, job: Job) {
-  const house = item.house.toLowerCase();
-  return house === "all houses" || house.includes(job.name.split(" ")[0].toLowerCase()) || house.includes(job.slug.split("-")[0]);
-}
+import type { Job } from "@/lib/mission-data";
 
 export function DashboardClient({
   jobs,
-  schedule,
-  henrySteps,
 }: {
   jobs: Job[];
-  schedule: ScheduleItem[];
-  henrySteps: { label: string; status: string }[];
 }) {
   const [selectedJobId, setSelectedJobId] = useState<string>("all");
 
   const selectedJob = selectedJobId === "all" ? null : jobs.find((job) => job.id === selectedJobId) ?? null;
 
   const filteredJobs = selectedJob ? [selectedJob] : jobs;
-  const filteredSchedule = selectedJob
-    ? schedule.filter((item) => jobMatchesSchedule(item, selectedJob))
-    : schedule;
 
   const urgentTasks = useMemo(
     () => filteredJobs.flatMap((job) => job.tasks.map((task) => ({ ...task, job: job.name, slug: job.slug })))
@@ -92,122 +80,70 @@ export function DashboardClient({
         ))}
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.35fr_0.95fr]">
-        <div className="space-y-6">
-          <div className="mission-panel p-5 sm:p-6">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">Board</p>
-                <h3 className="mt-1 text-xl font-semibold">Active jobs</h3>
-              </div>
-              <p className="text-sm text-zinc-500">Click any card to open house details.</p>
+      <section className="space-y-6">
+        <div className="mission-panel p-5 sm:p-6">
+          <div className="mb-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">Board</p>
+              <h3 className="mt-1 text-xl font-semibold">Active jobs</h3>
             </div>
-
-            <div className="space-y-4">
-              {filteredJobs.map((job) => (
-                <Link
-                  key={job.id}
-                  href={`/jobs/${job.slug}`}
-                  className="block rounded-3xl border border-white/10 bg-black/20 p-5 transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-black/30"
-                >
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <span className={`h-2.5 w-2.5 rounded-full ${job.color}`} />
-                        <h4 className="text-lg font-medium">{job.name}</h4>
-                        <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs text-zinc-400">{job.location}</span>
-                      </div>
-                      <p className="mt-2 text-sm text-zinc-400">{job.stage} · {job.status}</p>
-                      <p className="mt-1 text-sm text-zinc-500">Next: {job.next}</p>
-                    </div>
-
-                    <div className="min-w-56 lg:text-right">
-                      <div className="mb-2 flex items-center justify-between text-sm text-zinc-400 lg:justify-end lg:gap-3">
-                        <span>Progress</span>
-                        <span>{job.progress}%</span>
-                      </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-white/10">
-                        <div className={`h-full rounded-full ${job.color}`} style={{ width: `${job.progress}%` }} />
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+            <p className="text-sm text-zinc-500">Click any card to open house details.</p>
           </div>
 
-          <div className="mission-panel p-5 sm:p-6">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">Attention queue</p>
-                <h3 className="mt-1 text-xl font-semibold">What needs action first</h3>
-              </div>
-            </div>
-            <div className="space-y-3">
-              {urgentTasks.map((task) => (
-                <div key={task.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="font-medium text-white">{task.title}</p>
-                      <p className="mt-1 text-sm text-zinc-400">{task.job} · {task.owner}</p>
+          <div className="space-y-4">
+            {filteredJobs.map((job) => (
+              <Link
+                key={job.id}
+                href={`/jobs/${job.slug}`}
+                className="block rounded-3xl border border-white/10 bg-black/20 p-5 transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-black/30"
+              >
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <span className={`h-2.5 w-2.5 rounded-full ${job.color}`} />
+                      <h4 className="text-lg font-medium">{job.name}</h4>
+                      <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs text-zinc-400">{job.location}</span>
                     </div>
-                    <span className="rounded-full border border-white/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-zinc-400">{task.status}</span>
+                    <p className="mt-2 text-sm text-zinc-400">{job.stage} · {job.status}</p>
+                    <p className="mt-1 text-sm text-zinc-500">Next: {job.next}</p>
                   </div>
-                  <p className="mt-2 text-sm text-zinc-500">Due: {task.due}</p>
+
+                  <div className="min-w-56 lg:text-right">
+                    <div className="mb-2 flex items-center justify-between text-sm text-zinc-400 lg:justify-end lg:gap-3">
+                      <span>Progress</span>
+                      <span>{job.progress}%</span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                      <div className={`h-full rounded-full ${job.color}`} style={{ width: `${job.progress}%` }} />
+                    </div>
+                  </div>
                 </div>
-              ))}
-            </div>
+              </Link>
+            ))}
           </div>
         </div>
 
-        <div className="space-y-6">
-          <section className="mission-panel p-5 sm:p-6">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">Calendar</p>
-                <h3 className="mt-1 text-xl font-semibold">Next schedule moves</h3>
-              </div>
-              <Link href="/calendar" className="rounded-full border border-white/10 px-3 py-1 text-xs text-zinc-400 transition hover:bg-white/5">
-                Full calendar
-              </Link>
+        <div className="mission-panel p-5 sm:p-6">
+          <div className="mb-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">Attention queue</p>
+              <h3 className="mt-1 text-xl font-semibold">What needs action first</h3>
             </div>
-
-            <div className="space-y-3">
-              {filteredSchedule.slice(0, 5).map((item) => (
-                <div key={item.id} className={`rounded-2xl border p-4 ${item.tone}`}>
-                  <div className="flex items-center justify-between gap-4 text-sm">
-                    <span>{item.house}</span>
-                    <span>{item.day} · {item.time}</span>
+          </div>
+          <div className="space-y-3">
+            {urgentTasks.map((task) => (
+              <div key={task.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="font-medium text-white">{task.title}</p>
+                    <p className="mt-1 text-sm text-zinc-400">{task.job} · {task.owner}</p>
                   </div>
-                  <p className="mt-2 font-medium text-white">{item.title}</p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.18em] text-current/80">{item.type}</p>
+                  <span className="rounded-full border border-white/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-zinc-400">{task.status}</span>
                 </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="mission-panel p-5 sm:p-6">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">Henry Status</p>
-                <h3 className="mt-1 text-xl font-semibold">Build progress</h3>
+                <p className="mt-2 text-sm text-zinc-500">Due: {task.due}</p>
               </div>
-              <span className="text-sm text-zinc-500">64%</span>
-            </div>
-
-            <div className="space-y-3">
-              {henrySteps.map((step) => (
-                <div key={step.label} className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-                  <span className="text-sm text-zinc-200">{step.label}</span>
-                  <span className="text-xs uppercase tracking-[0.18em] text-zinc-500">{step.status}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-5 rounded-2xl border border-dashed border-white/10 p-4 text-sm text-zinc-400">
-              Next queue: live data hookup, task editor, client/sub views, and alert rules.
-            </div>
-          </section>
+            ))}
+          </div>
         </div>
       </section>
     </>
