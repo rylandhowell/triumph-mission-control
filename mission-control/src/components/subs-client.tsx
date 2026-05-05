@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type SubRecord = {
   id: string;
@@ -42,6 +42,19 @@ export function SubsClient() {
   const [dirty, setDirty] = useState(false);
   const [quick, setQuick] = useState({ name: "", trade: "", phone: "", email: "" });
   const localKey = "subs-insurance-cache";
+  const rowsRef = useRef<SubRecord[]>([]);
+
+  const pushRows = async (nextRows: SubRecord[]) => {
+    try {
+      await fetch("/api/subs-insurance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rows: nextRows }),
+      });
+    } catch {
+      // ignore
+    }
+  };
 
   const uploadInsurance = async (id: string, type: "gl" | "wc", file: File) => {
     try {
@@ -60,6 +73,7 @@ export function SubsClient() {
           return type === "gl" ? { ...r, glExpires: data.expirationDate } : { ...r, wcExpires: data.expirationDate };
         });
         localStorage.setItem(localKey, JSON.stringify(next));
+        void pushRows(next);
         return next;
       });
       setDirty(true);
@@ -105,20 +119,34 @@ export function SubsClient() {
   useEffect(() => {
     if (!loaded || !dirty) return;
     localStorage.setItem(localKey, JSON.stringify(rows));
+  }, [rows, loaded, dirty]);
 
-    const save = async () => {
+  useEffect(() => {
+    if (!loaded) return;
+    const iv = setInterval(async () => {
       try {
-        await fetch("/api/subs-insurance", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ rows }),
-        });
+        const res = await fetch("/api/subs-insurance", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!Array.isArray(data.rows)) return;
+
+        const current = JSON.stringify(rowsRef.current);
+        const incoming = JSON.stringify(data.rows);
+        if (current !== incoming) {
+          setRows(data.rows);
+          localStorage.setItem(localKey, JSON.stringify(data.rows));
+        }
       } catch {
         // ignore
       }
-    };
-    void save();
-  }, [rows, loaded, dirty]);
+    }, 2000);
+
+    return () => clearInterval(iv);
+  }, [loaded]);
+
+  useEffect(() => {
+    rowsRef.current = rows;
+  }, [rows]);
 
   const alerts = useMemo(() => {
     return rows
@@ -139,6 +167,7 @@ export function SubsClient() {
     setRows((prev) => {
       const next = prev.map((r) => (r.id === id ? { ...r, [key]: value } : r));
       localStorage.setItem(localKey, JSON.stringify(next));
+      void pushRows(next);
       return next;
     });
   };
@@ -156,7 +185,12 @@ export function SubsClient() {
             type="button"
             onClick={() => {
               setDirty(true);
-              setRows((prev) => [...prev, emptySub()]);
+              setRows((prev) => {
+                const next = [...prev, emptySub()];
+                localStorage.setItem(localKey, JSON.stringify(next));
+                void pushRows(next);
+                return next;
+              });
             }}
             className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-100 hover:bg-cyan-500/20"
           >
@@ -179,7 +213,12 @@ export function SubsClient() {
               const name = quick.name.trim();
               if (!name) return;
               setDirty(true);
-              setRows((prev) => [{ ...emptySub(), name, trade: quick.trade.trim(), phone: quick.phone.trim(), email: quick.email.trim() }, ...prev]);
+              setRows((prev) => {
+                const next = [{ ...emptySub(), name, trade: quick.trade.trim(), phone: quick.phone.trim(), email: quick.email.trim() }, ...prev];
+                localStorage.setItem(localKey, JSON.stringify(next));
+                void pushRows(next);
+                return next;
+              });
               setQuick({ name: "", trade: "", phone: "", email: "" });
             }}
           />
@@ -192,7 +231,12 @@ export function SubsClient() {
               const name = quick.name.trim();
               if (!name) return;
               setDirty(true);
-              setRows((prev) => [{ ...emptySub(), name, trade: quick.trade.trim(), phone: quick.phone.trim(), email: quick.email.trim() }, ...prev]);
+              setRows((prev) => {
+                const next = [{ ...emptySub(), name, trade: quick.trade.trim(), phone: quick.phone.trim(), email: quick.email.trim() }, ...prev];
+                localStorage.setItem(localKey, JSON.stringify(next));
+                void pushRows(next);
+                return next;
+              });
               setQuick({ name: "", trade: "", phone: "", email: "" });
             }}
             className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
@@ -285,7 +329,12 @@ export function SubsClient() {
                     type="button"
                     onClick={() => {
                       setDirty(true);
-                      setRows((prev) => prev.filter((x) => x.id !== r.id));
+                      setRows((prev) => {
+                        const next = prev.filter((x) => x.id !== r.id);
+                        localStorage.setItem(localKey, JSON.stringify(next));
+                        void pushRows(next);
+                        return next;
+                      });
                     }}
                     className="rounded border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-xs text-rose-200"
                   >

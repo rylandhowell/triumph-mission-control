@@ -16,6 +16,19 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
   const prevCount = useRef<number>(0);
   const canSave = useRef(false);
   const skipFirstSave = useRef(true);
+  const checkedRef = useRef<Set<string>>(new Set());
+
+  const pushChecklist = async (checked: string[]) => {
+    try {
+      await fetch("/api/checklist-state", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobId, checked }),
+      });
+    } catch {
+      // ignore
+    }
+  };
 
   // Load checklist state (local first, then server)
   useEffect(() => {
@@ -62,7 +75,7 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
     };
   }, [jobId]);
 
-  // Save shared checklist state
+  // Save checklist state + keep live synced across accounts
   useEffect(() => {
     if (!isLoaded || !canSave.current) return;
     if (skipFirstSave.current) {
@@ -72,27 +85,41 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
 
     const checked = Array.from(checkedItems);
     localStorage.setItem(`checklist-${jobId}`, JSON.stringify(checked));
+    void pushChecklist(checked);
+  }, [checkedItems, isLoaded]);
 
-    const save = async () => {
+  useEffect(() => {
+    if (!isLoaded) return;
+    const iv = setInterval(async () => {
       try {
-        await fetch("/api/checklist-state", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ jobId, checked }),
-        });
+        const res = await fetch(`/api/checklist-state?jobId=${encodeURIComponent(jobId)}`, { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        const server = new Set<string>(Array.isArray(data?.checked) ? data.checked : []);
+        const local = new Set<string>(checkedRef.current);
+        const same = server.size === local.size && Array.from(server).every((id) => local.has(id));
+        if (!same) {
+          setCheckedItems(server);
+          prevCount.current = server.size;
+          localStorage.setItem(`checklist-${jobId}`, JSON.stringify(Array.from(server)));
+        }
       } catch {
         // ignore
       }
-    };
+    }, 2000);
 
-    void save();
-  }, [checkedItems, jobId, isLoaded]);
+    return () => clearInterval(iv);
+  }, [jobId, isLoaded]);
 
   const categoryOrder = [
     "Pre-construction", "Foundation", "Framing", "Roofing", "Exterior",
     "Rough-in", "Insulation", "Interior", "Electrical", "Plumbing",
     "Mechanical", "Site", "Inspections", "Finish",
   ];
+
+  useEffect(() => {
+    checkedRef.current = checkedItems;
+  }, [checkedItems]);
 
   const sortedItems = [...items].sort((a, b) => {
     const aChecked = checkedItems.has(a.id);

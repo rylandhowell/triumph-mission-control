@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type SubRecord = {
   id: string;
@@ -12,6 +12,7 @@ export function JobSubsPicker({ jobId }: { jobId: string }) {
   const [subs, setSubs] = useState<SubRecord[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loaded, setLoaded] = useState(false);
+  const selectedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     let active = true;
@@ -55,20 +56,41 @@ export function JobSubsPicker({ jobId }: { jobId: string }) {
     };
   }, [jobId]);
 
+  useEffect(() => {
+    selectedRef.current = selected;
+  }, [selected]);
+
+  useEffect(() => {
+    if (!loaded) return;
+    const iv = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/job-subs?jobId=${encodeURIComponent(jobId)}`, { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        const server = new Set<string>(
+          Array.isArray(data?.subIds) ? data.subIds.filter((x: unknown): x is string => typeof x === "string") : []
+        );
+        const local = selectedRef.current;
+        const same = server.size === local.size && Array.from(server).every((id) => local.has(id));
+        if (!same) {
+          setSelected(server);
+          selectedRef.current = server;
+          localStorage.setItem(`job-subs-${jobId}`, JSON.stringify(Array.from(server)));
+        }
+      } catch {
+        // ignore
+      }
+    }, 2000);
+
+    return () => clearInterval(iv);
+  }, [jobId, loaded]);
+
   const selectedList = useMemo(
     () => subs.filter((s) => selected.has(s.id) && (s.name || s.trade)),
     [subs, selected]
   );
 
-  const toggle = async (id: string) => {
-    const next = new Set(selected);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    setSelected(next);
-
-    const subIds = Array.from(next);
-    localStorage.setItem(`job-subs-${jobId}`, JSON.stringify(subIds));
-
+  const pushJobSubs = async (subIds: string[]) => {
     try {
       await fetch("/api/job-subs", {
         method: "POST",
@@ -78,6 +100,18 @@ export function JobSubsPicker({ jobId }: { jobId: string }) {
     } catch {
       // ignore
     }
+  };
+
+  const toggle = async (id: string) => {
+    const next = new Set(selectedRef.current);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelected(next);
+    selectedRef.current = next;
+
+    const subIds = Array.from(next);
+    localStorage.setItem(`job-subs-${jobId}`, JSON.stringify(subIds));
+    void pushJobSubs(subIds);
   };
 
   if (!loaded) return <p className="text-sm text-zinc-500">Loading sub assignments...</p>;
