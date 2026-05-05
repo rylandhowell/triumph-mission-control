@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { readJson, writeJson } from "@/lib/blob-state";
+import fs from "node:fs/promises";
+import path from "node:path";
 
 type SubRecord = {
   id: string;
@@ -18,7 +20,18 @@ const DATA_FILE = "state/subs-insurance.json";
 
 export async function GET() {
   const rows = await readJson<SubRecord[]>(DATA_FILE, []);
-  return NextResponse.json({ rows: Array.isArray(rows) ? rows : [] as SubRecord[] });
+  if (Array.isArray(rows) && rows.length) return NextResponse.json({ rows });
+
+  try {
+    const localPath = path.join(process.cwd(), "state", "subs-insurance.json");
+    const raw = await fs.readFile(localPath, "utf8");
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return NextResponse.json({ rows: parsed as SubRecord[] });
+  } catch {
+    // ignore
+  }
+
+  return NextResponse.json({ rows: [] as SubRecord[] });
 }
 
 export async function POST(req: Request) {

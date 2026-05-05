@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { ChecklistItem } from "@/lib/mission-data";
 import { sendTelegram, msgChecklist, checkMilestone, msgMilestone } from "@/lib/telegram";
+import { recoveryChecklistByJob } from "@/lib/recovery-snapshot";
 
 interface ChecklistProps {
   items: ChecklistItem[];
@@ -93,6 +94,8 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
             }
           }
 
+          const recoverySet = new Set<string>(recoveryChecklistByJob[jobId] || []);
+
           if (serverSet.size === 0 && localSet.size > 0) {
             setCheckedItems(localSet);
             prevCount.current = localSet.size;
@@ -104,6 +107,11 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
             prevCount.current = backupSet.size;
             localStorage.setItem(checkedKey, JSON.stringify(Array.from(backupSet)));
             void pushChecklist(Array.from(backupSet), ++writeSeqRef.current);
+          } else if (serverSet.size === 0 && recoverySet.size > 0) {
+            setCheckedItems(recoverySet);
+            prevCount.current = recoverySet.size;
+            localStorage.setItem(checkedKey, JSON.stringify(Array.from(recoverySet)));
+            localStorage.setItem(backupKey, JSON.stringify(Array.from(recoverySet)));
           } else {
             setCheckedItems(serverSet);
             prevCount.current = serverSet.size;
@@ -157,9 +165,13 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
         const same = server.size === local.size && Array.from(server).every((id) => local.has(id));
         const hasPending = ackSeqRef.current < writeSeqRef.current;
         if (!same && !hasPending) {
+          if (server.size === 0 && local.size > 0) return;
           setCheckedItems(server);
           prevCount.current = server.size;
           localStorage.setItem(`checklist-${jobId}`, JSON.stringify(Array.from(server)));
+          if (server.size > 0) {
+            localStorage.setItem(`checklist-backup-${jobId}`, JSON.stringify(Array.from(server)));
+          }
         }
       } catch {
         // ignore

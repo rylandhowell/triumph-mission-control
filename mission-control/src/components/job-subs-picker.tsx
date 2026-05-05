@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { recoveryJobSubsByJob } from "@/lib/recovery-snapshot";
 
 type SubRecord = {
   id: string;
@@ -41,9 +42,11 @@ export function JobSubsPicker({ jobId }: { jobId: string }) {
         const selectedData = selectedRes.ok ? await selectedRes.json() : { subIds: [] };
 
         if (!active) return;
-        const next = new Set<string>(
+        const serverNext = new Set<string>(
           Array.isArray(selectedData.subIds) ? selectedData.subIds.filter((x: unknown): x is string => typeof x === "string") : []
         );
+        const recovery = new Set<string>(recoveryJobSubsByJob[jobId] || []);
+        const next = serverNext.size === 0 && recovery.size > 0 ? recovery : serverNext;
         setSubs(Array.isArray(subsData.rows) ? subsData.rows : []);
         setSelected(next);
         localStorage.setItem(localKey, JSON.stringify(Array.from(next)));
@@ -76,6 +79,7 @@ export function JobSubsPicker({ jobId }: { jobId: string }) {
         const same = server.size === local.size && Array.from(server).every((id) => local.has(id));
         const hasPending = ackSeqRef.current < writeSeqRef.current;
         if (!same && !hasPending) {
+          if (server.size === 0 && local.size > 0) return;
           setSelected(server);
           selectedRef.current = server;
           localStorage.setItem(`job-subs-${jobId}`, JSON.stringify(Array.from(server)));

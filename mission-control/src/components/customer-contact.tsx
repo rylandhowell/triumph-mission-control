@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { recoveryContactsByJob } from "@/lib/recovery-snapshot";
 
 type CustomerContact = {
   name: string;
@@ -39,8 +40,8 @@ export function CustomerContactCard({ jobId }: { jobId: string }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(`job-${jobId}-customer-contact`);
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
+      const fallback = recoveryContactsByJob[jobId];
+      const parsed = raw ? JSON.parse(raw) : fallback;
       if (!parsed || typeof parsed !== "object") return;
 
       // Backward compatibility: old single-contact shape

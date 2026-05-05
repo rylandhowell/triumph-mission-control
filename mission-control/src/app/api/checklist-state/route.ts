@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { readJson, writeJson } from "@/lib/blob-state";
+import { recoveryChecklistByJob } from "@/lib/recovery-snapshot";
 
 type ChecklistState = Record<string, string[]>;
 const DATA_FILE = "state/checklist-state.json";
@@ -15,7 +16,8 @@ export async function GET(req: Request) {
   if (!jobId) return NextResponse.json({ checked: [] as string[] });
 
   const state = await readState();
-  return NextResponse.json({ checked: Array.isArray(state[jobId]) ? state[jobId] : [] });
+  const checked = Array.isArray(state[jobId]) && state[jobId].length ? state[jobId] : (recoveryChecklistByJob[jobId] || []);
+  return NextResponse.json({ checked });
 }
 
 export async function POST(req: Request) {
