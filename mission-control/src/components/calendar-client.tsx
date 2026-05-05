@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Job, ScheduleItem } from "@/lib/mission-data";
 
 type CalendarEvent = {
@@ -21,6 +21,9 @@ function getJobForItem(item: ScheduleItem, jobs: Job[]) {
 function ymd(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
+
+const CUSTOM_EVENTS_KEY = "mission-calendar-custom-events";
+const HIDDEN_EVENTS_KEY = "mission-calendar-hidden-events";
 
 export function CalendarClient({ jobs, schedule }: { jobs: Job[]; schedule: ScheduleItem[] }) {
   const now = new Date();
@@ -51,8 +54,37 @@ export function CalendarClient({ jobs, schedule }: { jobs: Job[]; schedule: Sche
   }, [jobs, month, schedule]);
 
   const [customEvents, setCustomEvents] = useState<CalendarEvent[]>([]);
+  const [hiddenEventIds, setHiddenEventIds] = useState<string[]>([]);
 
-  const events = useMemo(() => [...baseEvents, ...customEvents], [baseEvents, customEvents]);
+  useEffect(() => {
+    try {
+      const customRaw = localStorage.getItem(CUSTOM_EVENTS_KEY);
+      if (customRaw) {
+        const parsed = JSON.parse(customRaw);
+        if (Array.isArray(parsed)) setCustomEvents(parsed);
+      }
+      const hiddenRaw = localStorage.getItem(HIDDEN_EVENTS_KEY);
+      if (hiddenRaw) {
+        const parsed = JSON.parse(hiddenRaw);
+        if (Array.isArray(parsed)) setHiddenEventIds(parsed);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(CUSTOM_EVENTS_KEY, JSON.stringify(customEvents));
+  }, [customEvents]);
+
+  useEffect(() => {
+    localStorage.setItem(HIDDEN_EVENTS_KEY, JSON.stringify(hiddenEventIds));
+  }, [hiddenEventIds]);
+
+  const events = useMemo(
+    () => [...baseEvents, ...customEvents].filter((e) => !hiddenEventIds.includes(e.id)),
+    [baseEvents, customEvents, hiddenEventIds],
+  );
 
   const calendarDays = useMemo(() => {
     const start = new Date(month.getFullYear(), month.getMonth(), 1);
@@ -82,6 +114,11 @@ export function CalendarClient({ jobs, schedule }: { jobs: Job[]; schedule: Sche
       { id: `evt-${Date.now()}`, date: selectedDate, time: form.time, title: form.title.trim(), jobId: form.jobId },
     ]);
     setForm((p) => ({ ...p, title: "" }));
+  };
+
+  const deleteEvent = (id: string) => {
+    setCustomEvents((prev) => prev.filter((e) => e.id !== id));
+    setHiddenEventIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
   };
 
   return (
@@ -133,7 +170,16 @@ export function CalendarClient({ jobs, schedule }: { jobs: Job[]; schedule: Sche
             <div className="mt-4 space-y-2">
               {selectedEvents.length ? selectedEvents.map((e) => (
                 <div key={e.id} className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm">
-                  <p className="text-zinc-100">{e.time} · {e.title}</p>
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-zinc-100">{e.time} · {e.title}</p>
+                    <button
+                      type="button"
+                      onClick={() => deleteEvent(e.id)}
+                      className="rounded border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-xs text-rose-200"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               )) : <p className="text-sm text-zinc-500">No events yet.</p>}
             </div>
