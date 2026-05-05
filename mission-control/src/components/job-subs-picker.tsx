@@ -83,7 +83,7 @@ export function JobSubsPicker({ jobId }: { jobId: string }) {
       } catch {
         // ignore
       }
-    }, 2000);
+    }, 500);
 
     return () => clearInterval(iv);
   }, [jobId, loaded]);
@@ -97,6 +97,7 @@ export function JobSubsPicker({ jobId }: { jobId: string }) {
     try {
       const res = await fetch("/api/job-subs", {
         method: "POST",
+        keepalive: true,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ jobId, subIds }),
       });

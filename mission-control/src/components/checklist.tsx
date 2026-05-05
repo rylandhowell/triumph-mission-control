@@ -24,6 +24,7 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
     try {
       const res = await fetch("/api/checklist-state", {
         method: "POST",
+        keepalive: true,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ jobId, checked }),
       });
@@ -111,7 +112,7 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
       } catch {
         // ignore
       }
-    }, 2000);
+    }, 500);
 
     return () => clearInterval(iv);
   }, [jobId, isLoaded]);

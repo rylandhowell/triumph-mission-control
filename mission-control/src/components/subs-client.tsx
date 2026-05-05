@@ -50,6 +50,7 @@ export function SubsClient() {
     try {
       const res = await fetch("/api/subs-insurance", {
         method: "POST",
+        keepalive: true,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rows: nextRows }),
       });
@@ -143,7 +144,7 @@ export function SubsClient() {
       } catch {
         // ignore
       }
-    }, 2000);
+    }, 500);
 
     return () => clearInterval(iv);
   }, [loaded]);
