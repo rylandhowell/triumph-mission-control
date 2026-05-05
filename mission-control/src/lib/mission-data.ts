@@ -195,10 +195,7 @@ export const jobs: Job[] = [
     next: "Footing inspection · TBD",
     color: "bg-sky-400",
     budget: "$350,000",
-    tasks: [
-      { id: "t7", title: "Clear lot", owner: "Site team", due: "This week", status: "In progress" },
-      { id: "t8", title: "Mark foundation layout", owner: "Ryland", due: "Next week", status: "Queued" },
-    ],
+    tasks: [],
   },
   {
     id: "job-205",
