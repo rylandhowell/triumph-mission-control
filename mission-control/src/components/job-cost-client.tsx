@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { jobs as houseJobs } from "@/lib/mission-data";
 
 type Category = "Site/Precon" | "Shell" | "MEP" | "Interior" | "Exterior";
 
@@ -9,6 +10,7 @@ type LineItemBudget = { name: string; budget: number };
 type JobBudget = {
   id: string;
   jobName: string;
+  sourceJobId?: string;
   lineItems: Record<Category, LineItemBudget[]>;
   totalBudget: number;
 };
@@ -77,7 +79,10 @@ export function JobCostClient() {
     if (typeof window !== "undefined") localStorage.setItem(STORAGE_KEY, JSON.stringify({ jobs, actuals }));
   }, [jobs, actuals]);
 
-  const activeJob = useMemo(() => jobs.find((j) => j.id === activeJobId), [jobs, activeJobId]);
+  const isCatalogSelection = activeJobId.startsWith("catalog:");
+  const selectedCatalogJobId = isCatalogSelection ? activeJobId.replace("catalog:", "") : "";
+  const selectedCatalogJob = useMemo(() => houseJobs.find((j) => j.id === selectedCatalogJobId) || null, [selectedCatalogJobId]);
+  const activeJob = useMemo(() => jobs.find((j) => j.id === activeJobId || (!!j.sourceJobId && j.sourceJobId === selectedCatalogJobId)), [jobs, activeJobId, selectedCatalogJobId]);
   const jobActuals = useMemo(() => actuals.filter((a) => a.jobId === activeJobId), [actuals, activeJobId]);
 
   const burnByCategory = useMemo(() => {
@@ -124,8 +129,20 @@ export function JobCostClient() {
 
   const addJob = () => {
     const total = Object.values(newJobLineItems).reduce((sum, items) => sum + items.reduce((s, i) => s + (i.budget || 0), 0), 0);
-    const job: JobBudget = { id: crypto.randomUUID(), jobName: newJobName || "Untitled Job", lineItems: JSON.parse(JSON.stringify(newJobLineItems)), totalBudget: total };
-    setJobs((prev) => [...prev, job]);
+    const sourceJobId = selectedCatalogJob?.id;
+    const fallbackName = selectedCatalogJob?.name || "Untitled Job";
+    const id = sourceJobId || crypto.randomUUID();
+    const job: JobBudget = {
+      id,
+      sourceJobId,
+      jobName: newJobName || fallbackName,
+      lineItems: JSON.parse(JSON.stringify(newJobLineItems)),
+      totalBudget: total,
+    };
+    setJobs((prev) => {
+      const withoutExisting = prev.filter((j) => j.id !== id && j.sourceJobId !== sourceJobId);
+      return [...withoutExisting, job];
+    });
     setActiveJobId(job.id);
     setShowAddJob(false);
     setNewJobName("");
@@ -266,12 +283,22 @@ export function JobCostClient() {
           <div className="flex items-center gap-3">
             <select value={activeJobId} onChange={(e) => setActiveJobId(e.target.value)} className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm">
               <option value="">Select job</option>
-              {jobs.map((j) => (<option key={j.id} value={j.id}>{j.jobName}</option>))}
+              {houseJobs.map((hj) => {
+                const existing = jobs.find((j) => j.sourceJobId === hj.id || j.id === hj.id || j.jobName === hj.name);
+                return (
+                  <option key={hj.id} value={existing ? existing.id : `catalog:${hj.id}`}>
+                    {hj.name}{existing ? "" : " (no budget yet)"}
+                  </option>
+                );
+              })}
+              {jobs.filter((j) => !j.sourceJobId && !houseJobs.some((h) => h.name === j.jobName)).map((j) => (
+                <option key={j.id} value={j.id}>{j.jobName}</option>
+              ))}
             </select>
             {activeJob ? (
               <button onClick={printHomeownerPdf} className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20">Printable PDF</button>
             ) : null}
-            <button onClick={() => setShowAddJob(true)} className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-100 hover:bg-cyan-500/20">Add job budget</button>
+            <button onClick={() => { setNewJobName(selectedCatalogJob?.name || ""); setShowAddJob(true); }} className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-100 hover:bg-cyan-500/20">Add job budget</button>
           </div>
         </div>
       </section>
@@ -361,7 +388,7 @@ export function JobCostClient() {
         <section className="mission-panel p-6">
           <h3 className="text-lg font-semibold">Add Job Budget</h3>
           <div className="mt-4 space-y-4">
-            <label className="block"><span className="text-sm text-zinc-300">Job name</span><input value={newJobName} onChange={(e) => setNewJobName(e.target.value)} className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2" /></label>
+            <label className="block"><span className="text-sm text-zinc-300">Job name</span><input value={newJobName} onChange={(e) => setNewJobName(e.target.value)} placeholder={selectedCatalogJob?.name || "Job name"} className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2" /></label>
             <div>
               <button onClick={importFromEstimator} className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-100 hover:bg-cyan-500/20">Import budgets from Estimator</button>
             </div>
