@@ -40,6 +40,7 @@ export function SubsClient() {
   const [rows, setRows] = useState<SubRecord[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [quick, setQuick] = useState({ name: "", trade: "", phone: "", email: "" });
 
   const uploadInsurance = async (id: string, type: "gl" | "wc", file: File) => {
     try {
@@ -136,7 +137,35 @@ export function SubsClient() {
             }}
             className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-100 hover:bg-cyan-500/20"
           >
-            Add sub
+            Add blank row
+          </button>
+        </div>
+
+        <div className="mt-4 grid gap-2 sm:grid-cols-5">
+          <input value={quick.name} onChange={(e) => setQuick((q) => ({ ...q, name: e.target.value }))} placeholder="Sub name" className="rounded border border-white/10 bg-black/30 px-3 py-2 text-sm" />
+          <input value={quick.trade} onChange={(e) => setQuick((q) => ({ ...q, trade: e.target.value }))} placeholder="Trade" className="rounded border border-white/10 bg-black/30 px-3 py-2 text-sm" />
+          <input value={quick.phone} onChange={(e) => setQuick((q) => ({ ...q, phone: e.target.value }))} placeholder="Phone" className="rounded border border-white/10 bg-black/30 px-3 py-2 text-sm" />
+          <input value={quick.email} onChange={(e) => setQuick((q) => ({ ...q, email: e.target.value }))} placeholder="Email" className="rounded border border-white/10 bg-black/30 px-3 py-2 text-sm" />
+          <button
+            type="button"
+            onClick={() => {
+              if (!quick.name.trim()) return;
+              setDirty(true);
+              setRows((prev) => [
+                {
+                  ...emptySub(),
+                  name: quick.name.trim(),
+                  trade: quick.trade.trim(),
+                  phone: quick.phone.trim(),
+                  email: quick.email.trim(),
+                },
+                ...prev,
+              ]);
+              setQuick({ name: "", trade: "", phone: "", email: "" });
+            }}
+            className="rounded bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-500"
+          >
+            Quick add sub
           </button>
         </div>
       </section>

@@ -3,83 +3,125 @@
 import { useMemo, useState } from "react";
 import type { Job, ScheduleItem } from "@/lib/mission-data";
 
-const days = ["Mon", "Tue", "Wed"];
+type CalendarEvent = {
+  id: string;
+  date: string;
+  time: string;
+  title: string;
+  jobId: string;
+};
 
-function jobMatchesSchedule(item: ScheduleItem, job: Job) {
+const dayNameToIndex: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+
+function getJobForItem(item: ScheduleItem, jobs: Job[]) {
   const house = item.house.toLowerCase();
-  return house === "all houses" || house.includes(job.name.split(" ")[0].toLowerCase()) || house.includes(job.slug.split("-")[0]);
+  return jobs.find((job) => house.includes(job.name.split(" ")[0].toLowerCase()) || house.includes(job.slug.split("-")[0])) ?? null;
+}
+
+function ymd(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 export function CalendarClient({ jobs, schedule }: { jobs: Job[]; schedule: ScheduleItem[] }) {
-  const [selectedJobId, setSelectedJobId] = useState<string>("all");
-  const selectedJob = selectedJobId === "all" ? null : jobs.find((job) => job.id === selectedJobId) ?? null;
+  const now = new Date();
+  const [month, setMonth] = useState(new Date(now.getFullYear(), now.getMonth(), 1));
+  const [selectedDate, setSelectedDate] = useState(ymd(now));
+  const [form, setForm] = useState({ title: "", time: "08:00", jobId: "all" });
 
-  const filteredSchedule = useMemo(() => {
-    return selectedJob ? schedule.filter((item) => jobMatchesSchedule(item, selectedJob)) : schedule;
-  }, [schedule, selectedJob]);
+  const monthLabel = month.toLocaleString("en-US", { month: "long", year: "numeric" });
 
-  const upcoming = filteredSchedule.slice(0, 3);
+  const baseEvents = useMemo(() => {
+    const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
+    return schedule.map((item) => {
+      const targetDow = dayNameToIndex[item.day] ?? 1;
+      const firstDow = monthStart.getDay();
+      const offset = (targetDow - firstDow + 7) % 7;
+      const date = new Date(monthStart);
+      date.setDate(1 + offset);
+
+      const job = getJobForItem(item, jobs);
+      return {
+        id: item.id,
+        date: ymd(date),
+        time: item.time,
+        title: item.title,
+        jobId: job?.id ?? "all",
+      } as CalendarEvent;
+    });
+  }, [jobs, month, schedule]);
+
+  const [customEvents, setCustomEvents] = useState<CalendarEvent[]>([]);
+
+  const events = useMemo(() => [...baseEvents, ...customEvents], [baseEvents, customEvents]);
+
+  const calendarDays = useMemo(() => {
+    const start = new Date(month.getFullYear(), month.getMonth(), 1);
+    const end = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+    const days: Date[] = [];
+
+    const gridStart = new Date(start);
+    gridStart.setDate(start.getDate() - start.getDay());
+
+    const gridEnd = new Date(end);
+    gridEnd.setDate(end.getDate() + (6 - end.getDay()));
+
+    for (const d = new Date(gridStart); d <= gridEnd; d.setDate(d.getDate() + 1)) {
+      days.push(new Date(d));
+    }
+    return days;
+  }, [month]);
+
+  const selectedEvents = events
+    .filter((e) => e.date === selectedDate)
+    .sort((a, b) => a.time.localeCompare(b.time));
+
+  const addEvent = () => {
+    if (!form.title.trim()) return;
+    setCustomEvents((prev) => [
+      ...prev,
+      { id: `evt-${Date.now()}`, date: selectedDate, time: form.time, title: form.title.trim(), jobId: form.jobId },
+    ]);
+    setForm((p) => ({ ...p, title: "" }));
+  };
 
   return (
-    <>
+    <div className="space-y-6">
       <section className="mission-panel p-5 sm:p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm text-zinc-400">Master calendar with per-house filtering and color-coded event types.</p>
+            <p className="text-sm text-zinc-400">Monthly scheduling view</p>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight">Calendar</h2>
           </div>
-          <div className="flex flex-wrap gap-2 text-sm">
-            <button
-              onClick={() => setSelectedJobId("all")}
-              className={`rounded-2xl px-4 py-2 ${selectedJobId === "all" ? "bg-white text-zinc-950" : "border border-white/10 bg-white/5 text-zinc-300"}`}
-            >
-              All Houses
-            </button>
-            {jobs.map((job) => (
-              <button
-                key={job.id}
-                onClick={() => setSelectedJobId(job.id)}
-                className={`rounded-2xl px-4 py-2 ${selectedJobId === job.id ? "bg-white text-zinc-950" : "border border-white/10 bg-white/5 text-zinc-300"}`}
-              >
-                {job.name}
-              </button>
-            ))}
+          <div className="flex items-center gap-2">
+            <button onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))} className="rounded-lg border border-white/10 px-3 py-2 text-sm text-zinc-300">←</button>
+            <span className="min-w-44 text-center text-sm text-zinc-200">{monthLabel}</span>
+            <button onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))} className="rounded-lg border border-white/10 px-3 py-2 text-sm text-zinc-300">→</button>
           </div>
         </div>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <div className="mission-panel p-5 sm:p-6">
-          <div className="grid gap-4 md:grid-cols-3">
-            {days.map((day) => {
-              const dayItems = filteredSchedule.filter((item) => item.day === day);
+          <div className="grid grid-cols-7 gap-2 text-xs text-zinc-500">
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => <div key={d} className="px-2 py-1">{d}</div>)}
+          </div>
+          <div className="mt-2 grid grid-cols-7 gap-2">
+            {calendarDays.map((d) => {
+              const dateKey = ymd(d);
+              const dayEvents = events.filter((e) => e.date === dateKey);
+              const inMonth = d.getMonth() === month.getMonth();
+              const active = dateKey === selectedDate;
               return (
-                <div key={day} className="rounded-3xl border border-white/10 bg-black/20 p-4">
-                  <div className="mb-4 flex items-center justify-between">
-                    <h3 className="text-lg font-medium">{day}</h3>
-                    <span className="text-xs uppercase tracking-[0.18em] text-zinc-500">{dayItems.length} items</span>
+                <button key={dateKey} onClick={() => setSelectedDate(dateKey)} className={`min-h-28 rounded-xl border p-2 text-left ${active ? "border-emerald-500/50 bg-emerald-500/10" : "border-white/10 bg-black/20"} ${inMonth ? "text-zinc-100" : "text-zinc-600"}`}>
+                  <p className="text-xs">{d.getDate()}</p>
+                  <div className="mt-2 space-y-1">
+                    {dayEvents.slice(0, 3).map((e) => {
+                      const job = jobs.find((j) => j.id === e.jobId);
+                      return <div key={e.id} className={`truncate rounded px-1 py-0.5 text-[11px] ${job?.color ? `${job.color} text-black` : "bg-zinc-700 text-zinc-100"}`}>{e.time} {e.title}</div>;
+                    })}
+                    {dayEvents.length > 3 ? <div className="text-[11px] text-zinc-500">+{dayEvents.length - 3} more</div> : null}
                   </div>
-
-                  <div className="space-y-3">
-                    {dayItems.length ? dayItems.map((item) => {
-                      const relatedJob = jobs.find((job) => jobMatchesSchedule(item, job));
-
-                      return (
-                        <div
-                          key={item.id}
-                          className={`rounded-2xl border p-4 ${relatedJob ? relatedJob.color : item.tone}`}
-                        >
-                          <div className="flex items-center justify-between gap-3 text-sm">
-                            <span>{item.house}</span>
-                            <span>{item.time}</span>
-                          </div>
-                          <p className="mt-2 font-medium text-white">{item.title}</p>
-                          <p className="mt-1 text-xs uppercase tracking-[0.18em] text-current/80">{item.type}</p>
-                        </div>
-                      );
-                    }) : <div className="rounded-2xl border border-dashed border-white/10 p-4 text-sm text-zinc-500">No items for this day.</div>}
-                  </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -87,38 +129,30 @@ export function CalendarClient({ jobs, schedule }: { jobs: Job[]; schedule: Sche
 
         <div className="space-y-6">
           <section className="mission-panel p-5 sm:p-6">
-            <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">Upcoming</p>
-            <h3 className="mt-1 text-xl font-semibold">Next critical moves</h3>
-            <div className="mt-5 space-y-3 text-sm text-zinc-300">
-              {upcoming.map((item) => (
-                <div key={item.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <span>{item.title}</span>
-                    <span className="text-zinc-500">{item.day} · {item.time}</span>
-                  </div>
-                  <p className="mt-2 text-zinc-500">{item.house} · {item.type}</p>
+            <h3 className="text-xl font-semibold">Schedule for {selectedDate}</h3>
+            <div className="mt-4 space-y-2">
+              {selectedEvents.length ? selectedEvents.map((e) => (
+                <div key={e.id} className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm">
+                  <p className="text-zinc-100">{e.time} · {e.title}</p>
                 </div>
-              ))}
+              )) : <p className="text-sm text-zinc-500">No events yet.</p>}
             </div>
           </section>
 
           <section className="mission-panel p-5 sm:p-6">
-            <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">Legend</p>
-            <h3 className="mt-1 text-xl font-semibold">House legend</h3>
-            <div className="mt-5 space-y-3">
-              {jobs.map((job) => (
-                <div key={job.id} className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <span className={`h-2.5 w-2.5 rounded-full ${job.color}`} />
-                    <span className="text-sm text-zinc-200">{job.name}</span>
-                  </div>
-                  <span className="text-sm text-zinc-500">{job.stage}</span>
-                </div>
-              ))}
+            <h3 className="text-xl font-semibold">Add schedule item</h3>
+            <div className="mt-4 space-y-3">
+              <input value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder="Task / meeting" className="w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm" />
+              <input type="time" value={form.time} onChange={(e) => setForm((p) => ({ ...p, time: e.target.value }))} className="w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm" />
+              <select value={form.jobId} onChange={(e) => setForm((p) => ({ ...p, jobId: e.target.value }))} className="w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm">
+                <option value="all">General / All jobs</option>
+                {jobs.map((j) => <option key={j.id} value={j.id}>{j.name}</option>)}
+              </select>
+              <button onClick={addEvent} className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500">Add to {selectedDate}</button>
             </div>
           </section>
         </div>
       </section>
-    </>
+    </div>
   );
 }

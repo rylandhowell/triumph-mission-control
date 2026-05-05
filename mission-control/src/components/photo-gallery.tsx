@@ -127,9 +127,10 @@ export function PhotoGallery({ jobId }: PhotoGalleryProps) {
     setPhotos((prev) => prev.map((p) => (p.id === id ? { ...p, caption } : p)));
   };
 
-  const filteredPhotos = selectedCategory === "All" 
-    ? photos 
-    : photos.filter((p) => p.category === selectedCategory);
+  const filteredPhotos = (selectedCategory === "All"
+    ? photos
+    : photos.filter((p) => p.category === selectedCategory)
+  ).slice().reverse();
 
   if (!isLoaded) {
     return <div className="p-5 text-zinc-500">Loading photos...</div>;
@@ -262,22 +263,33 @@ export function PhotoGallery({ jobId }: PhotoGalleryProps) {
 
       {/* Lightbox */}
       {selectedPhoto && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
-          onClick={() => setSelectedPhoto(null)}
-        >
-          <div className="max-h-[90vh] max-w-[90vw]">
-            <img
-              src={selectedPhoto.url}
-              alt={selectedPhoto.caption}
-              className="max-h-[85vh] max-w-full object-contain"
-            />
-            <p className="mt-2 text-center text-sm text-zinc-300">
-              {selectedPhoto.caption} · {selectedPhoto.category} · {selectedPhoto.date}
-            </p>
-            <p className="mt-1 text-center text-xs text-zinc-500">
-              Click anywhere to close
-            </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4" onClick={() => setSelectedPhoto(null)}>
+          <div className="max-h-[90vh] max-w-[95vw]" onClick={(e) => e.stopPropagation()}>
+            <img src={selectedPhoto.url} alt={selectedPhoto.caption} className="max-h-[80vh] max-w-full rounded-lg object-contain" />
+            <div className="mt-3 flex items-center justify-between gap-3 text-sm text-zinc-300">
+              <p>{selectedPhoto.caption} · {selectedPhoto.category} · {selectedPhoto.date}</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    const idx = filteredPhotos.findIndex((p) => p.id === selectedPhoto.id);
+                    if (idx > 0) setSelectedPhoto(filteredPhotos[idx - 1]);
+                  }}
+                  className="rounded border border-white/20 px-2 py-1 text-xs"
+                >
+                  Prev
+                </button>
+                <button
+                  onClick={() => {
+                    const idx = filteredPhotos.findIndex((p) => p.id === selectedPhoto.id);
+                    if (idx >= 0 && idx < filteredPhotos.length - 1) setSelectedPhoto(filteredPhotos[idx + 1]);
+                  }}
+                  className="rounded border border-white/20 px-2 py-1 text-xs"
+                >
+                  Next
+                </button>
+                <button onClick={() => setSelectedPhoto(null)} className="rounded border border-white/20 px-2 py-1 text-xs">Close</button>
+              </div>
+            </div>
           </div>
         </div>
       )}

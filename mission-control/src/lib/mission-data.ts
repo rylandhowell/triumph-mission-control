@@ -2,7 +2,6 @@ export type Task = {
   id: string;
   title: string;
   owner: string;
-  assignedBy?: string;
   due: string;
   status: "Done" | "In progress" | "Queued" | "At risk";
 };
@@ -127,7 +126,6 @@ export const navItems = [
   { label: "Calendar", href: "/calendar" },
   { label: "Estimator", href: "/estimator" },
   { label: "Job Cost", href: "/job-cost" },
-  { label: "Leads Site", href: "/leads" },
   { label: "Subs", href: "/subs" },
   { label: "Files", href: "/files" },
   { label: "Settings", href: "/settings" },
