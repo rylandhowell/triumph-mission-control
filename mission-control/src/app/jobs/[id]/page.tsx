@@ -59,7 +59,7 @@ export default function JobDetailPage() {
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="grid gap-6 lg:grid-cols-2">
             <div className="mission-panel p-5 sm:p-6">
               <JobSubsPicker jobId={job.id} />
             </div>
