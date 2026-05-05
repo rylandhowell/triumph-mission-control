@@ -22,9 +22,17 @@ export default function JobDetailPage() {
   return (
     <AppShell currentPath="/">
       <section className="mission-panel p-5 sm:p-6">
-        <Link href="/" className="text-sm text-zinc-500 transition hover:text-zinc-300">
-          ← Back to overview
-        </Link>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link href="/" className="text-sm text-zinc-500 transition hover:text-zinc-300">
+            ← Back to overview
+          </Link>
+          <Link
+            href="/calendar"
+            className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-100 hover:bg-cyan-500/20"
+          >
+            Open all-jobs calendar
+          </Link>
+        </div>
         <div className="mt-4">
           <EditableJob job={job} />
         </div>

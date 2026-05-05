@@ -147,33 +147,39 @@ export function DashboardClient({
 
           <div className="space-y-4">
             {filteredJobs.map((job) => (
-              <Link
-                key={job.id}
-                href={`/jobs/${job.slug}`}
-                className="block rounded-3xl border border-white/10 bg-black/20 p-5 transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-black/30"
-              >
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <span className={`h-2.5 w-2.5 rounded-full ${job.color}`} />
-                      <h4 className="text-lg font-medium">{job.name}</h4>
-                      <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs text-zinc-400">{job.location}</span>
-                    </div>
-                    <p className="mt-2 text-sm text-zinc-400">{job.stage} · {job.status}</p>
-                    <p className="mt-1 text-sm text-zinc-500">Next: {job.next}</p>
-                  </div>
-
-                  <div className="min-w-56 lg:text-right">
-                    <div className="mb-2 flex items-center justify-between text-sm text-zinc-400 lg:justify-end lg:gap-3">
-                      <span>Progress</span>
-                      <span>{job.progress}%</span>
-                    </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-white/10">
-                      <div className={`h-full rounded-full ${job.color}`} style={{ width: `${job.progress}%` }} />
-                    </div>
-                  </div>
+              <div key={job.id} className="rounded-3xl border border-white/10 bg-black/20 p-5">
+                <div className="mb-3 flex justify-end">
+                  <Link href="/calendar" className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-2 py-1 text-xs text-cyan-100 hover:bg-cyan-500/20">
+                    Calendar
+                  </Link>
                 </div>
-              </Link>
+                <Link
+                  href={`/jobs/${job.slug}`}
+                  className="block transition hover:-translate-y-0.5"
+                >
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <span className={`h-2.5 w-2.5 rounded-full ${job.color}`} />
+                        <h4 className="text-lg font-medium">{job.name}</h4>
+                        <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs text-zinc-400">{job.location}</span>
+                      </div>
+                      <p className="mt-2 text-sm text-zinc-400">{job.stage} · {job.status}</p>
+                      <p className="mt-1 text-sm text-zinc-500">Next: {job.next}</p>
+                    </div>
+
+                    <div className="min-w-56 lg:text-right">
+                      <div className="mb-2 flex items-center justify-between text-sm text-zinc-400 lg:justify-end lg:gap-3">
+                        <span>Progress</span>
+                        <span>{job.progress}%</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                        <div className={`h-full rounded-full ${job.color}`} style={{ width: `${job.progress}%` }} />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </div>
             ))}
           </div>
         </div>
