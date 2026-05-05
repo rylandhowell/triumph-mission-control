@@ -267,89 +267,146 @@ export function SubsClient() {
       </section>
 
       <section className="mission-panel overflow-hidden bg-[#09090b] p-3">
-        <div className="overflow-x-auto overflow-y-hidden rounded-xl bg-[#09090b] pb-2">
-        <table className="min-w-[1400px] w-full text-sm bg-[#09090b]">
-          <thead className="text-zinc-400">
-            <tr className="border-b border-white/10">
-              {[
-                "Sub",
-                "Trade",
-                "Email",
-                "GL Policy",
-                "GL Expires",
-                "GL File",
-                "WC Policy",
-                "WC Expires",
-                "WC File",
-                "Notes",
-                "",
-              ].map((h) => (
-                <th key={h} className="bg-[#09090b] px-2 py-2 text-left font-medium">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id} className="border-b border-white/5 bg-[#09090b]">
-                <td className="bg-[#09090b] p-2"><input value={r.name} onChange={(e) => setCell(r.id, "name", e.target.value)} className="w-40 rounded border border-white/10 bg-black/30 px-2 py-1" /></td>
-                <td className="bg-[#09090b] p-2"><input value={r.trade} onChange={(e) => setCell(r.id, "trade", e.target.value)} className="w-32 rounded border border-white/10 bg-black/30 px-2 py-1" /></td>
-                <td className="bg-[#09090b] p-2"><input value={r.email} onChange={(e) => setCell(r.id, "email", e.target.value)} className="w-44 rounded border border-white/10 bg-black/30 px-2 py-1" /></td>
-                <td className="bg-[#09090b] p-2"><input value={r.glPolicy} onChange={(e) => setCell(r.id, "glPolicy", e.target.value)} className="w-36 rounded border border-white/10 bg-black/30 px-2 py-1" /></td>
-                <td className="bg-[#09090b] p-2">
-                  <input type="date" value={r.glExpires} onChange={(e) => setCell(r.id, "glExpires", e.target.value)} className="w-36 rounded border border-white/10 bg-black/30 px-2 py-1" style={{ colorScheme: "dark" }} />
-                </td>
-                <td className="bg-[#09090b] p-2">
-                  <input
-                    type="file"
-                    accept=".pdf,.png,.jpg,.jpeg"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) void uploadInsurance(r.id, "gl", file);
-                      e.currentTarget.value = "";
-                    }}
-                    className="w-44 rounded border border-white/10 bg-black/30 p-1 text-xs text-zinc-300 file:mr-2 file:rounded file:border-0 file:bg-zinc-700 file:px-2 file:py-1 file:text-xs file:text-zinc-100"
-                    style={{ colorScheme: "dark" }}
-                  />
-                </td>
-                <td className="bg-[#09090b] p-2"><input value={r.wcPolicy} onChange={(e) => setCell(r.id, "wcPolicy", e.target.value)} className="w-36 rounded border border-white/10 bg-black/30 px-2 py-1" /></td>
-                <td className="bg-[#09090b] p-2">
-                  <input type="date" value={r.wcExpires} onChange={(e) => setCell(r.id, "wcExpires", e.target.value)} className="w-36 rounded border border-white/10 bg-black/30 px-2 py-1" style={{ colorScheme: "dark" }} />
-                </td>
-                <td className="bg-[#09090b] p-2">
-                  <input
-                    type="file"
-                    accept=".pdf,.png,.jpg,.jpeg"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) void uploadInsurance(r.id, "wc", file);
-                      e.currentTarget.value = "";
-                    }}
-                    className="w-44 rounded border border-white/10 bg-black/30 p-1 text-xs text-zinc-300 file:mr-2 file:rounded file:border-0 file:bg-zinc-700 file:px-2 file:py-1 file:text-xs file:text-zinc-100"
-                    style={{ colorScheme: "dark" }}
-                  />
-                </td>
-                <td className="bg-[#09090b] p-2"><input value={r.notes} onChange={(e) => setCell(r.id, "notes", e.target.value)} className="w-56 rounded border border-white/10 bg-black/30 px-2 py-1" /></td>
-                <td className="bg-[#09090b] p-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDirty(true);
-                      setRows((prev) => {
-                        const next = prev.filter((x) => x.id !== r.id);
-                        localStorage.setItem(localKey, JSON.stringify(next));
-                        void pushRows(next, ++writeSeqRef.current);
-                        return next;
-                      });
-                    }}
-                    className="rounded border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-xs text-rose-200"
-                  >
-                    Remove
-                  </button>
-                </td>
+        <div className="space-y-3 md:hidden">
+          {rows.map((r) => (
+            <div key={r.id} className="rounded-xl border border-white/10 bg-black/30 p-3">
+              <div className="grid gap-2">
+                <input value={r.name} onChange={(e) => setCell(r.id, "name", e.target.value)} placeholder="Sub name" className="w-full rounded border border-white/10 bg-black/30 px-2 py-2" />
+                <input value={r.trade} onChange={(e) => setCell(r.id, "trade", e.target.value)} placeholder="Trade" className="w-full rounded border border-white/10 bg-black/30 px-2 py-2" />
+                <input value={r.phone} onChange={(e) => setCell(r.id, "phone", e.target.value)} placeholder="Phone" className="w-full rounded border border-white/10 bg-black/30 px-2 py-2" />
+                <input value={r.email} onChange={(e) => setCell(r.id, "email", e.target.value)} placeholder="Email" className="w-full rounded border border-white/10 bg-black/30 px-2 py-2" />
+                <input value={r.glPolicy} onChange={(e) => setCell(r.id, "glPolicy", e.target.value)} placeholder="GL Policy" className="w-full rounded border border-white/10 bg-black/30 px-2 py-2" />
+                <input type="date" value={r.glExpires} onChange={(e) => setCell(r.id, "glExpires", e.target.value)} className="w-full rounded border border-white/10 bg-black/30 px-2 py-2" style={{ colorScheme: "dark" }} />
+                <input
+                  type="file"
+                  accept=".pdf,.png,.jpg,.jpeg"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void uploadInsurance(r.id, "gl", file);
+                    e.currentTarget.value = "";
+                  }}
+                  className="w-full rounded border border-white/10 bg-black/30 p-2 text-xs text-zinc-300 file:mr-2 file:rounded file:border-0 file:bg-zinc-700 file:px-2 file:py-1 file:text-xs file:text-zinc-100"
+                  style={{ colorScheme: "dark" }}
+                />
+                <input value={r.wcPolicy} onChange={(e) => setCell(r.id, "wcPolicy", e.target.value)} placeholder="WC Policy" className="w-full rounded border border-white/10 bg-black/30 px-2 py-2" />
+                <input type="date" value={r.wcExpires} onChange={(e) => setCell(r.id, "wcExpires", e.target.value)} className="w-full rounded border border-white/10 bg-black/30 px-2 py-2" style={{ colorScheme: "dark" }} />
+                <input
+                  type="file"
+                  accept=".pdf,.png,.jpg,.jpeg"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void uploadInsurance(r.id, "wc", file);
+                    e.currentTarget.value = "";
+                  }}
+                  className="w-full rounded border border-white/10 bg-black/30 p-2 text-xs text-zinc-300 file:mr-2 file:rounded file:border-0 file:bg-zinc-700 file:px-2 file:py-1 file:text-xs file:text-zinc-100"
+                  style={{ colorScheme: "dark" }}
+                />
+                <input value={r.notes} onChange={(e) => setCell(r.id, "notes", e.target.value)} placeholder="Notes" className="w-full rounded border border-white/10 bg-black/30 px-2 py-2" />
+              </div>
+              <div className="mt-3 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDirty(true);
+                    setRows((prev) => {
+                      const next = prev.filter((x) => x.id !== r.id);
+                      localStorage.setItem(localKey, JSON.stringify(next));
+                      void pushRows(next, ++writeSeqRef.current);
+                      return next;
+                    });
+                  }}
+                  className="rounded border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="hidden overflow-x-auto overflow-y-hidden rounded-xl bg-[#09090b] pb-2 md:block">
+          <table className="min-w-[1400px] w-full text-sm bg-[#09090b]">
+            <thead className="text-zinc-400">
+              <tr className="border-b border-white/10">
+                {[
+                  "Sub",
+                  "Trade",
+                  "Email",
+                  "GL Policy",
+                  "GL Expires",
+                  "GL File",
+                  "WC Policy",
+                  "WC Expires",
+                  "WC File",
+                  "Notes",
+                  "",
+                ].map((h) => (
+                  <th key={h} className="bg-[#09090b] px-2 py-2 text-left font-medium">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.id} className="border-b border-white/5 bg-[#09090b]">
+                  <td className="bg-[#09090b] p-2"><input value={r.name} onChange={(e) => setCell(r.id, "name", e.target.value)} className="w-40 rounded border border-white/10 bg-black/30 px-2 py-1" /></td>
+                  <td className="bg-[#09090b] p-2"><input value={r.trade} onChange={(e) => setCell(r.id, "trade", e.target.value)} className="w-32 rounded border border-white/10 bg-black/30 px-2 py-1" /></td>
+                  <td className="bg-[#09090b] p-2"><input value={r.email} onChange={(e) => setCell(r.id, "email", e.target.value)} className="w-44 rounded border border-white/10 bg-black/30 px-2 py-1" /></td>
+                  <td className="bg-[#09090b] p-2"><input value={r.glPolicy} onChange={(e) => setCell(r.id, "glPolicy", e.target.value)} className="w-36 rounded border border-white/10 bg-black/30 px-2 py-1" /></td>
+                  <td className="bg-[#09090b] p-2">
+                    <input type="date" value={r.glExpires} onChange={(e) => setCell(r.id, "glExpires", e.target.value)} className="w-36 rounded border border-white/10 bg-black/30 px-2 py-1" style={{ colorScheme: "dark" }} />
+                  </td>
+                  <td className="bg-[#09090b] p-2">
+                    <input
+                      type="file"
+                      accept=".pdf,.png,.jpg,.jpeg"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void uploadInsurance(r.id, "gl", file);
+                        e.currentTarget.value = "";
+                      }}
+                      className="w-44 rounded border border-white/10 bg-black/30 p-1 text-xs text-zinc-300 file:mr-2 file:rounded file:border-0 file:bg-zinc-700 file:px-2 file:py-1 file:text-xs file:text-zinc-100"
+                      style={{ colorScheme: "dark" }}
+                    />
+                  </td>
+                  <td className="bg-[#09090b] p-2"><input value={r.wcPolicy} onChange={(e) => setCell(r.id, "wcPolicy", e.target.value)} className="w-36 rounded border border-white/10 bg-black/30 px-2 py-1" /></td>
+                  <td className="bg-[#09090b] p-2">
+                    <input type="date" value={r.wcExpires} onChange={(e) => setCell(r.id, "wcExpires", e.target.value)} className="w-36 rounded border border-white/10 bg-black/30 px-2 py-1" style={{ colorScheme: "dark" }} />
+                  </td>
+                  <td className="bg-[#09090b] p-2">
+                    <input
+                      type="file"
+                      accept=".pdf,.png,.jpg,.jpeg"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void uploadInsurance(r.id, "wc", file);
+                        e.currentTarget.value = "";
+                      }}
+                      className="w-44 rounded border border-white/10 bg-black/30 p-1 text-xs text-zinc-300 file:mr-2 file:rounded file:border-0 file:bg-zinc-700 file:px-2 file:py-1 file:text-xs file:text-zinc-100"
+                      style={{ colorScheme: "dark" }}
+                    />
+                  </td>
+                  <td className="bg-[#09090b] p-2"><input value={r.notes} onChange={(e) => setCell(r.id, "notes", e.target.value)} className="w-56 rounded border border-white/10 bg-black/30 px-2 py-1" /></td>
+                  <td className="bg-[#09090b] p-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDirty(true);
+                        setRows((prev) => {
+                          const next = prev.filter((x) => x.id !== r.id);
+                          localStorage.setItem(localKey, JSON.stringify(next));
+                          void pushRows(next, ++writeSeqRef.current);
+                          return next;
+                        });
+                      }}
+                      className="rounded border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-xs text-rose-200"
+                    >
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
     </div>
