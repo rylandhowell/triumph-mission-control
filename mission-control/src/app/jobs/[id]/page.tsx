@@ -7,6 +7,7 @@ import { EditableJob } from "@/components/editable-job";
 import { Checklist } from "@/components/checklist";
 import { PhotoGallery } from "@/components/photo-gallery";
 import { JobSubsPicker } from "@/components/job-subs-picker";
+import { CustomerContactCard } from "@/components/customer-contact";
 import { getJobBySlug, buildChecklist } from "@/lib/mission-data";
 
 export default function JobDetailPage() {
@@ -74,6 +75,8 @@ export default function JobDetailPage() {
           <Checklist items={buildChecklist} jobId={job.id} jobName={job.name} />
         </div>
       </section>
+
+      <CustomerContactCard jobId={job.id} />
     </AppShell>
   );
 }
