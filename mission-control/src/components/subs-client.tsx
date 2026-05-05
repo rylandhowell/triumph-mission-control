@@ -41,6 +41,7 @@ export function SubsClient() {
   const [loaded, setLoaded] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [quick, setQuick] = useState({ name: "", trade: "", phone: "", email: "" });
+  const localKey = "subs-insurance-cache";
 
   const uploadInsurance = async (id: string, type: "gl" | "wc", file: File) => {
     try {
@@ -53,12 +54,14 @@ export function SubsClient() {
       const data = await res.json();
       if (!data?.found || !data?.expirationDate) return;
 
-      setRows((prev) =>
-        prev.map((r) => {
+      setRows((prev) => {
+        const next = prev.map((r) => {
           if (r.id !== id) return r;
           return type === "gl" ? { ...r, glExpires: data.expirationDate } : { ...r, wcExpires: data.expirationDate };
-        })
-      );
+        });
+        localStorage.setItem(localKey, JSON.stringify(next));
+        return next;
+      });
       setDirty(true);
     } catch {
       // ignore
@@ -67,12 +70,26 @@ export function SubsClient() {
 
   useEffect(() => {
     let active = true;
+
+    const localRaw = localStorage.getItem(localKey);
+    if (localRaw) {
+      try {
+        const parsed = JSON.parse(localRaw);
+        if (Array.isArray(parsed)) setRows(parsed);
+      } catch {
+        // ignore
+      }
+    }
+
     const load = async () => {
       try {
         const res = await fetch("/api/subs-insurance", { cache: "no-store" });
         if (!res.ok) return;
         const data = await res.json();
-        if (active && Array.isArray(data.rows)) setRows(data.rows);
+        if (active && Array.isArray(data.rows)) {
+          setRows(data.rows);
+          localStorage.setItem(localKey, JSON.stringify(data.rows));
+        }
       } catch {
         // ignore
       } finally {
@@ -87,6 +104,8 @@ export function SubsClient() {
 
   useEffect(() => {
     if (!loaded || !dirty) return;
+    localStorage.setItem(localKey, JSON.stringify(rows));
+
     const save = async () => {
       try {
         await fetch("/api/subs-insurance", {
@@ -117,7 +136,11 @@ export function SubsClient() {
 
   const setCell = (id: string, key: keyof SubRecord, value: string) => {
     setDirty(true);
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, [key]: value } : r)));
+    setRows((prev) => {
+      const next = prev.map((r) => (r.id === id ? { ...r, [key]: value } : r));
+      localStorage.setItem(localKey, JSON.stringify(next));
+      return next;
+    });
   };
 
   return (

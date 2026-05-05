@@ -15,6 +15,18 @@ export function JobSubsPicker({ jobId }: { jobId: string }) {
 
   useEffect(() => {
     let active = true;
+    const localKey = `job-subs-${jobId}`;
+
+    const localRaw = localStorage.getItem(localKey);
+    if (localRaw) {
+      try {
+        const parsed = JSON.parse(localRaw);
+        setSelected(new Set(Array.isArray(parsed) ? parsed : []));
+      } catch {
+        // ignore
+      }
+    }
+
     const load = async () => {
       try {
         const [subsRes, selectedRes] = await Promise.all([
@@ -26,8 +38,12 @@ export function JobSubsPicker({ jobId }: { jobId: string }) {
         const selectedData = selectedRes.ok ? await selectedRes.json() : { subIds: [] };
 
         if (!active) return;
+        const next = new Set<string>(
+          Array.isArray(selectedData.subIds) ? selectedData.subIds.filter((x: unknown): x is string => typeof x === "string") : []
+        );
         setSubs(Array.isArray(subsData.rows) ? subsData.rows : []);
-        setSelected(new Set(Array.isArray(selectedData.subIds) ? selectedData.subIds : []));
+        setSelected(next);
+        localStorage.setItem(localKey, JSON.stringify(Array.from(next)));
       } finally {
         if (active) setLoaded(true);
       }
@@ -50,11 +66,14 @@ export function JobSubsPicker({ jobId }: { jobId: string }) {
     else next.add(id);
     setSelected(next);
 
+    const subIds = Array.from(next);
+    localStorage.setItem(`job-subs-${jobId}`, JSON.stringify(subIds));
+
     try {
       await fetch("/api/job-subs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobId, subIds: Array.from(next) }),
+        body: JSON.stringify({ jobId, subIds }),
       });
     } catch {
       // ignore

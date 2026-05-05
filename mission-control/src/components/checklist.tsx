@@ -17,9 +17,23 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
   const canSave = useRef(false);
   const skipFirstSave = useRef(true);
 
-  // Load shared checklist state from server on mount
+  // Load checklist state (local first, then server)
   useEffect(() => {
     let active = true;
+    const localKey = `checklist-${jobId}`;
+
+    const localRaw = localStorage.getItem(localKey);
+    if (localRaw) {
+      try {
+        const parsed = JSON.parse(localRaw);
+        const localSet = new Set<string>(Array.isArray(parsed) ? parsed : []);
+        setCheckedItems(localSet);
+        prevCount.current = localSet.size;
+      } catch {
+        // ignore
+      }
+    }
+
     const load = async () => {
       try {
         const res = await fetch(`/api/checklist-state?jobId=${encodeURIComponent(jobId)}`, { cache: "no-store" });
@@ -30,6 +44,7 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
         if (active) {
           setCheckedItems(set);
           prevCount.current = set.size;
+          localStorage.setItem(localKey, JSON.stringify(Array.from(set)));
         }
       } catch {
         // ignore
@@ -55,12 +70,15 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
       return;
     }
 
+    const checked = Array.from(checkedItems);
+    localStorage.setItem(`checklist-${jobId}`, JSON.stringify(checked));
+
     const save = async () => {
       try {
         await fetch("/api/checklist-state", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ jobId, checked: Array.from(checkedItems) }),
+          body: JSON.stringify({ jobId, checked }),
         });
       } catch {
         // ignore
