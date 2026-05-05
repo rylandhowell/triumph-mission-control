@@ -2,6 +2,7 @@ export type Task = {
   id: string;
   title: string;
   owner: string;
+  assignedBy?: string;
   due: string;
   status: "Done" | "In progress" | "Queued" | "At risk";
 };

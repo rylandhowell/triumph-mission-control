@@ -61,16 +61,23 @@ export function CalendarClient({ jobs, schedule }: { jobs: Job[]; schedule: Sche
                   </div>
 
                   <div className="space-y-3">
-                    {dayItems.length ? dayItems.map((item) => (
-                      <div key={item.id} className={`rounded-2xl border p-4 ${item.tone}`}>
-                        <div className="flex items-center justify-between gap-3 text-sm">
-                          <span>{item.house}</span>
-                          <span>{item.time}</span>
+                    {dayItems.length ? dayItems.map((item) => {
+                      const relatedJob = jobs.find((job) => jobMatchesSchedule(item, job));
+
+                      return (
+                        <div
+                          key={item.id}
+                          className={`rounded-2xl border p-4 ${relatedJob ? relatedJob.color : item.tone}`}
+                        >
+                          <div className="flex items-center justify-between gap-3 text-sm">
+                            <span>{item.house}</span>
+                            <span>{item.time}</span>
+                          </div>
+                          <p className="mt-2 font-medium text-white">{item.title}</p>
+                          <p className="mt-1 text-xs uppercase tracking-[0.18em] text-current/80">{item.type}</p>
                         </div>
-                        <p className="mt-2 font-medium text-white">{item.title}</p>
-                        <p className="mt-1 text-xs uppercase tracking-[0.18em] text-current/80">{item.type}</p>
-                      </div>
-                    )) : <div className="rounded-2xl border border-dashed border-white/10 p-4 text-sm text-zinc-500">No items for this day.</div>}
+                      );
+                    }) : <div className="rounded-2xl border border-dashed border-white/10 p-4 text-sm text-zinc-500">No items for this day.</div>}
                   </div>
                 </div>
               );

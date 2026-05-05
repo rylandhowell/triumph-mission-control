@@ -14,29 +14,60 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [isLoaded, setIsLoaded] = useState(false);
   const prevCount = useRef<number>(0);
+  const canSave = useRef(false);
+  const skipFirstSave = useRef(true);
 
-  // Load from localStorage on mount
+  // Load shared checklist state from server on mount
   useEffect(() => {
-    const storageKey = `checklist-${jobId}`;
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
+    let active = true;
+    const load = async () => {
       try {
-        const parsed = JSON.parse(saved);
+        const res = await fetch(`/api/checklist-state?jobId=${encodeURIComponent(jobId)}`, { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        const parsed = Array.isArray(data?.checked) ? data.checked : [];
         const set = new Set<string>(parsed);
-        setCheckedItems(set);
-        prevCount.current = set.size;
+        if (active) {
+          setCheckedItems(set);
+          prevCount.current = set.size;
+        }
+      } catch {
+        // ignore
+      } finally {
+        if (active) {
+          canSave.current = true;
+          setIsLoaded(true);
+        }
+      }
+    };
+
+    void load();
+    return () => {
+      active = false;
+    };
+  }, [jobId]);
+
+  // Save shared checklist state
+  useEffect(() => {
+    if (!isLoaded || !canSave.current) return;
+    if (skipFirstSave.current) {
+      skipFirstSave.current = false;
+      return;
+    }
+
+    const save = async () => {
+      try {
+        await fetch("/api/checklist-state", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jobId, checked: Array.from(checkedItems) }),
+        });
       } catch {
         // ignore
       }
-    }
-    setIsLoaded(true);
-  }, [jobId]);
+    };
 
-  // Save to localStorage + send Telegram on change
-  useEffect(() => {
-    if (!isLoaded) return;
-    const storageKey = `checklist-${jobId}`;
-    localStorage.setItem(storageKey, JSON.stringify(Array.from(checkedItems)));
+    void save();
   }, [checkedItems, jobId, isLoaded]);
 
   const categoryOrder = [
@@ -45,11 +76,17 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
     "Mechanical", "Site", "Inspections", "Finish",
   ];
 
-  const grouped: [string, ChecklistItem[]][] = [];
-  for (const cat of categoryOrder) {
-    const catItems = items.filter((i) => i.category === cat);
-    if (catItems.length > 0) grouped.push([cat, catItems]);
-  }
+  const sortedItems = [...items].sort((a, b) => {
+    const aChecked = checkedItems.has(a.id);
+    const bChecked = checkedItems.has(b.id);
+    if (aChecked !== bChecked) return aChecked ? 1 : -1;
+
+    const aCat = categoryOrder.indexOf(a.category);
+    const bCat = categoryOrder.indexOf(b.category);
+    if (aCat !== bCat) return aCat - bCat;
+
+    return 0;
+  });
 
   const toggleItem = (item: ChecklistItem) => {
     const next = new Set(checkedItems);
@@ -106,42 +143,30 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
       </div>
 
       <div className="max-h-[60vh] overflow-y-auto rounded-xl border border-white/10 bg-black/20">
-        {grouped.map(([category, catItems]) => {
-          const catCompleted = catItems.filter((i) => checkedItems.has(i.id)).length;
-          return (
-            <div key={category} className="border-b border-white/10 last:border-b-0">
-              <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-zinc-900/90 px-4 py-2 backdrop-blur">
-                <span className="text-sm font-semibold uppercase tracking-wider text-zinc-400">
-                  {category}
-                </span>
-                <span className="text-xs text-zinc-500">
-                  {catCompleted}/{catItems.length}
-                </span>
-              </div>
-              <div className="divide-y divide-white/5">
-                {catItems.map((item) => {
-                  const isChecked = checkedItems.has(item.id);
-                  return (
-                    <label
-                      key={item.id}
-                      className="flex cursor-pointer items-start gap-3 px-4 py-2.5 transition hover:bg-white/5"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => toggleItem(item)}
-                        className="mt-0.5 h-4 w-4 cursor-pointer accent-emerald-500"
-                      />
-                      <span className={`select-none text-sm ${isChecked ? "text-zinc-500 line-through" : "text-zinc-200"}`}>
-                        {item.text}
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+        <div className="divide-y divide-white/5">
+          {sortedItems.map((item) => {
+            const isChecked = checkedItems.has(item.id);
+            return (
+              <label
+                key={item.id}
+                className="flex cursor-pointer items-start gap-3 px-4 py-2.5 transition hover:bg-white/5"
+              >
+                <input
+                  type="checkbox"
+                  checked={isChecked}
+                  onChange={() => toggleItem(item)}
+                  className="mt-0.5 h-4 w-4 cursor-pointer accent-emerald-500"
+                />
+                <div>
+                  <p className={`select-none text-sm ${isChecked ? "text-zinc-500 line-through" : "text-zinc-200"}`}>
+                    {item.text}
+                  </p>
+                  <p className="mt-0.5 text-[11px] uppercase tracking-[0.12em] text-zinc-500">{item.category}</p>
+                </div>
+              </label>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
