@@ -17,6 +17,7 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
   const canSave = useRef(false);
   const skipFirstSave = useRef(true);
   const checkedRef = useRef<Set<string>>(new Set());
+  const lastLocalWriteAt = useRef(0);
 
   const pushChecklist = async (checked: string[]) => {
     try {
@@ -84,6 +85,7 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
     }
 
     const checked = Array.from(checkedItems);
+    lastLocalWriteAt.current = Date.now();
     localStorage.setItem(`checklist-${jobId}`, JSON.stringify(checked));
     void pushChecklist(checked);
   }, [checkedItems, isLoaded]);
@@ -98,7 +100,8 @@ export function Checklist({ items, jobId, jobName }: ChecklistProps) {
         const server = new Set<string>(Array.isArray(data?.checked) ? data.checked : []);
         const local = new Set<string>(checkedRef.current);
         const same = server.size === local.size && Array.from(server).every((id) => local.has(id));
-        if (!same) {
+        const justWroteLocally = Date.now() - lastLocalWriteAt.current < 2500;
+        if (!same && !justWroteLocally) {
           setCheckedItems(server);
           prevCount.current = server.size;
           localStorage.setItem(`checklist-${jobId}`, JSON.stringify(Array.from(server)));

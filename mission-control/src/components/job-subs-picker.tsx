@@ -13,6 +13,7 @@ export function JobSubsPicker({ jobId }: { jobId: string }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loaded, setLoaded] = useState(false);
   const selectedRef = useRef<Set<string>>(new Set());
+  const lastLocalWriteAt = useRef(0);
 
   useEffect(() => {
     let active = true;
@@ -72,7 +73,8 @@ export function JobSubsPicker({ jobId }: { jobId: string }) {
         );
         const local = selectedRef.current;
         const same = server.size === local.size && Array.from(server).every((id) => local.has(id));
-        if (!same) {
+        const justWroteLocally = Date.now() - lastLocalWriteAt.current < 2500;
+        if (!same && !justWroteLocally) {
           setSelected(server);
           selectedRef.current = server;
           localStorage.setItem(`job-subs-${jobId}`, JSON.stringify(Array.from(server)));
@@ -110,6 +112,7 @@ export function JobSubsPicker({ jobId }: { jobId: string }) {
     selectedRef.current = next;
 
     const subIds = Array.from(next);
+    lastLocalWriteAt.current = Date.now();
     localStorage.setItem(`job-subs-${jobId}`, JSON.stringify(subIds));
     void pushJobSubs(subIds);
   };
