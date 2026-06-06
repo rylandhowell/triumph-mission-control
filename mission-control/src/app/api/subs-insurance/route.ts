@@ -16,7 +16,7 @@ type SubRecord = {
   notes: string;
 };
 
-const DATA_FILE = "state/subs-insurance.json";
+const DATA_FILE = "subs-insurance.json";
 
 export async function GET() {
   const rows = await readJson<SubRecord[]>(DATA_FILE, []);
@@ -39,8 +39,9 @@ export async function POST(req: Request) {
     const body = await req.json();
     const rows = Array.isArray(body?.rows) ? body.rows : [];
     await writeJson(DATA_FILE, rows);
-    return NextResponse.json({ ok: true });
-  } catch {
+    return NextResponse.json({ ok: true, count: rows.length });
+  } catch (err) {
+    console.error("[SUBS-INSURANCE] Save failed:", err);
     return NextResponse.json({ ok: false }, { status: 400 });
   }
 }

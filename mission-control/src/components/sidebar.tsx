@@ -3,7 +3,37 @@ import { navItems, jobs, schedule } from "@/lib/mission-data";
 
 export function Sidebar({ currentPath }: { currentPath: string }) {
   return (
-    <aside className="mission-panel hidden w-72 shrink-0 p-5 lg:block">
+    <>
+      <aside className="mission-mobile-sidebar mission-panel w-full p-4 lg:hidden">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">Triumph Homes Inc</p>
+            <h1 className="mt-1 text-xl font-semibold tracking-tight">Mission Control</h1>
+          </div>
+          <p className="shrink-0 text-xs text-zinc-500">{jobs.length} jobs</p>
+        </div>
+
+        <nav className="mt-4 grid grid-cols-2 gap-2 text-sm min-[430px]:grid-cols-3">
+          {navItems.map((item) => {
+            const active = currentPath === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`min-h-10 rounded-xl px-2 py-2 text-center transition ${
+                  active
+                    ? "bg-white text-zinc-950 dark:bg-white dark:text-zinc-950"
+                    : "text-zinc-700 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/5"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+      </aside>
+
+      <aside className="mission-desktop-sidebar mission-panel hidden w-72 shrink-0 p-5 lg:block">
       <div>
         <p className="text-[11px] uppercase tracking-[0.28em] text-zinc-500">Triumph Homes Inc</p>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight">Mission Control</h1>
@@ -47,5 +77,6 @@ export function Sidebar({ currentPath }: { currentPath: string }) {
         </div>
       </div>
     </aside>
+    </>
   );
 }

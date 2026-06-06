@@ -7,6 +7,18 @@ type EditableTask = Task;
 
 const statuses: EditableTask["status"][] = ["Done", "In progress", "Queued", "At risk"];
 
+const makeId = () => {
+  try {
+    // Prefer UUID when available
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const c: any = globalThis.crypto;
+    if (c?.randomUUID) return c.randomUUID();
+  } catch {
+    // ignore
+  }
+  return `task-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+};
+
 export function CurrentTasksEditor({ jobId, initialTasks }: { jobId: string; initialTasks: Task[] }) {
   const [tasks, setTasks] = useState<EditableTask[]>(initialTasks);
   const [draft, setDraft] = useState<EditableTask>({
@@ -31,7 +43,11 @@ export function CurrentTasksEditor({ jobId, initialTasks }: { jobId: string; ini
   }, [key]);
 
   useEffect(() => {
-    localStorage.setItem(key, JSON.stringify(tasks));
+    try {
+      localStorage.setItem(key, JSON.stringify(tasks));
+    } catch {
+      // ignore storage errors (e.g. private mode)
+    }
   }, [key, tasks]);
 
   const setField = (id: string, field: keyof EditableTask, value: string) => {
@@ -39,17 +55,27 @@ export function CurrentTasksEditor({ jobId, initialTasks }: { jobId: string; ini
   };
 
   const addTask = () => {
-    if (!draft.title.trim()) return;
-    setTasks((prev) => [
-      {
-        ...draft,
-        id: crypto.randomUUID(),
-        title: draft.title.trim(),
-        owner: draft.owner.trim(),
-        due: draft.due.trim(),
-      },
-      ...prev,
-    ]);
+    const nextTask: EditableTask = {
+      ...draft,
+      id: makeId(),
+      title: draft.title.trim() || "New Task",
+      owner: draft.owner.trim(),
+      due: draft.due.trim(),
+    };
+
+    // Update UI immediately
+    setTasks((prev) => [nextTask, ...prev]);
+
+    // Best-effort persist (do not block UI)
+    try {
+      const raw = localStorage.getItem(key);
+      const prev = raw ? JSON.parse(raw) : [];
+      const arr = Array.isArray(prev) ? prev : [];
+      localStorage.setItem(key, JSON.stringify([nextTask, ...arr]));
+    } catch {
+      // ignore storage errors
+    }
+
     setDraft({ id: "", title: "", owner: "", due: "", status: "Queued" });
   };
 
@@ -59,7 +85,16 @@ export function CurrentTasksEditor({ jobId, initialTasks }: { jobId: string; ini
       <h3 className="mt-1 text-xl font-semibold">Current work</h3>
 
       <div className="mt-4 grid gap-2 md:grid-cols-5">
-        <input value={draft.title} onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))} placeholder="Task" className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm" />
+        <textarea
+          value={draft.title}
+          onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) addTask();
+          }}
+          placeholder="Task"
+          rows={2}
+          className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm leading-5"
+        />
         <input value={draft.owner} onChange={(e) => setDraft((d) => ({ ...d, owner: e.target.value }))} placeholder="Owner" className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm" />
         <input value={draft.due} onChange={(e) => setDraft((d) => ({ ...d, due: e.target.value }))} placeholder="Due" className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm" />
         <select value={draft.status} onChange={(e) => setDraft((d) => ({ ...d, status: e.target.value as EditableTask["status"] }))} className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm">
@@ -72,7 +107,12 @@ export function CurrentTasksEditor({ jobId, initialTasks }: { jobId: string; ini
         {tasks.map((task) => (
           <div key={task.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
             <div className="grid gap-2 md:grid-cols-[2fr_1fr_1fr_1fr_auto]">
-              <input value={task.title} onChange={(e) => setField(task.id, "title", e.target.value)} className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm" />
+              <textarea
+                value={task.title}
+                onChange={(e) => setField(task.id, "title", e.target.value)}
+                rows={2}
+                className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm leading-5"
+              />
               <input value={task.owner} onChange={(e) => setField(task.id, "owner", e.target.value)} className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm" />
               <input value={task.due} onChange={(e) => setField(task.id, "due", e.target.value)} className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm" />
               <select value={task.status} onChange={(e) => setField(task.id, "status", e.target.value)} className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm">

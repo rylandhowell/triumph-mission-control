@@ -8,6 +8,7 @@ type UserSettings = {
   defaultView: "overview" | "calendar" | "subs";
   notifications: boolean;
   compactMode: boolean;
+  mobileFriendly: boolean;
 };
 
 const defaultSettings: UserSettings = {
@@ -16,6 +17,7 @@ const defaultSettings: UserSettings = {
   defaultView: "overview",
   notifications: true,
   compactMode: false,
+  mobileFriendly: true,
 };
 
 export function SettingsClient() {
@@ -48,6 +50,7 @@ export function SettingsClient() {
     localStorage.setItem("mission-theme", settings.theme);
     localStorage.setItem("mission-active-profile", profile);
     document.documentElement.classList.toggle("dark", settings.theme === "dark");
+    document.documentElement.classList.toggle("mission-mobile", settings.mobileFriendly);
   }, [profile, settings]);
 
   return (
@@ -90,6 +93,11 @@ export function SettingsClient() {
         <label className={toggleRowClass}>
           <span>Compact mode</span>
           <input type="checkbox" checked={settings.compactMode} onChange={(e) => setSettings((s) => ({ ...s, compactMode: e.target.checked }))} className="h-4 w-4 accent-emerald-500" />
+        </label>
+
+        <label className={toggleRowClass}>
+          <span>Mobile-friendly layout</span>
+          <input type="checkbox" checked={settings.mobileFriendly} onChange={(e) => setSettings((s) => ({ ...s, mobileFriendly: e.target.checked }))} className="h-4 w-4 accent-emerald-500" />
         </label>
       </section>
     </div>

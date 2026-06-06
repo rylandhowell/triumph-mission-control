@@ -9,6 +9,7 @@ import { PhotoGallery } from "@/components/photo-gallery";
 import { JobSubsPicker } from "@/components/job-subs-picker";
 import { CurrentTasksEditor } from "@/components/current-tasks-editor";
 import { CustomerContactCard } from "@/components/customer-contact";
+import { JobHousePlans } from "@/components/job-houseplans";
 import { getJobBySlug, buildChecklist } from "@/lib/mission-data";
 
 export default function JobDetailPage() {
@@ -28,16 +29,28 @@ export default function JobDetailPage() {
           <Link href="/" className="text-sm text-zinc-500 transition hover:text-zinc-300">
             ← Back to overview
           </Link>
-          <Link
-            href="/calendar"
-            className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-100 hover:bg-cyan-500/20"
-          >
-            Open all-jobs calendar
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <a
+              href="#house-plans"
+              className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-100 hover:bg-emerald-500/20"
+            >
+              House plans
+            </a>
+            <Link
+              href="/calendar"
+              className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-100 hover:bg-cyan-500/20"
+            >
+              Open all-jobs calendar
+            </Link>
+          </div>
         </div>
         <div className="mt-4">
           <EditableJob job={job} />
         </div>
+      </section>
+
+      <section className="mission-panel p-5 sm:p-6">
+        <JobHousePlans jobId={job.id} />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">

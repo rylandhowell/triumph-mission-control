@@ -132,6 +132,13 @@ export function PhotoGallery({ jobId }: PhotoGalleryProps) {
     : photos.filter((p) => p.category === selectedCategory)
   ).slice().reverse();
 
+  const openFullScreen = (photo: Photo) => {
+    setSelectedPhoto(photo);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   if (!isLoaded) {
     return <div className="p-5 text-zinc-500">Loading photos...</div>;
   }
@@ -218,6 +225,43 @@ export function PhotoGallery({ jobId }: PhotoGalleryProps) {
         })}
       </div>
 
+      {/* Inline viewer */}
+      {selectedPhoto ? (
+        <div className="rounded-xl border border-white/10 bg-black/30 p-3">
+          <img src={selectedPhoto.url} alt={selectedPhoto.caption} className="max-h-[70vh] w-full rounded-lg object-contain" />
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-zinc-300">
+            <p>{selectedPhoto.caption} · {selectedPhoto.category} · {selectedPhoto.date}</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  const idx = filteredPhotos.findIndex((p) => p.id === selectedPhoto.id);
+                  if (idx > 0) setSelectedPhoto(filteredPhotos[idx - 1]);
+                }}
+                className="rounded border border-white/20 px-2 py-1 text-xs"
+              >
+                Prev
+              </button>
+              <button
+                onClick={() => openFullScreen(selectedPhoto)}
+                className="rounded border border-white/20 px-2 py-1 text-xs"
+              >
+                Focus
+              </button>
+              <button
+                onClick={() => {
+                  const idx = filteredPhotos.findIndex((p) => p.id === selectedPhoto.id);
+                  if (idx >= 0 && idx < filteredPhotos.length - 1) setSelectedPhoto(filteredPhotos[idx + 1]);
+                }}
+                className="rounded border border-white/20 px-2 py-1 text-xs"
+              >
+                Next
+              </button>
+              <button onClick={() => setSelectedPhoto(null)} className="rounded border border-white/20 px-2 py-1 text-xs">Close</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {/* Photo grid */}
       {filteredPhotos.length === 0 ? (
         <div className="rounded-xl border border-white/10 bg-black/20 p-8 text-center">
@@ -228,7 +272,7 @@ export function PhotoGallery({ jobId }: PhotoGalleryProps) {
           {filteredPhotos.map((photo) => (
             <div
               key={photo.id}
-              className="group relative overflow-hidden rounded-xl border border-white/10 bg-black/20"
+              className="group overflow-hidden rounded-xl border border-white/10 bg-black/20"
             >
               <img
                 src={photo.url}
@@ -236,12 +280,20 @@ export function PhotoGallery({ jobId }: PhotoGalleryProps) {
                 onClick={() => setSelectedPhoto(photo)}
                 className="aspect-[4/3] w-full cursor-pointer object-cover transition group-hover:opacity-90"
               />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent p-3">
+              <div className="space-y-2 p-3">
+                <button
+                  type="button"
+                  onClick={() => openFullScreen(photo)}
+                  className="block w-full rounded-md bg-emerald-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-emerald-500"
+                  aria-label={`View full photo: ${photo.caption}`}
+                >
+                  View Full
+                </button>
                 <input
                   type="text"
                   value={photo.caption}
                   onChange={(e) => updateCaption(photo.id, e.target.value)}
-                  className="w-full bg-transparent text-sm text-white placeholder-zinc-500 outline-none"
+                  className="w-full rounded-md border border-white/10 bg-black/30 px-2 py-1 text-sm text-white placeholder-zinc-500 outline-none"
                   placeholder="Add caption..."
                 />
                 <div className="mt-1 flex items-center justify-between">
@@ -258,39 +310,6 @@ export function PhotoGallery({ jobId }: PhotoGalleryProps) {
               </div>
             </div>
           ))}
-        </div>
-      )}
-
-      {/* Lightbox */}
-      {selectedPhoto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4" onClick={() => setSelectedPhoto(null)}>
-          <div className="max-h-[90vh] max-w-[95vw]" onClick={(e) => e.stopPropagation()}>
-            <img src={selectedPhoto.url} alt={selectedPhoto.caption} className="max-h-[80vh] max-w-full rounded-lg object-contain" />
-            <div className="mt-3 flex items-center justify-between gap-3 text-sm text-zinc-300">
-              <p>{selectedPhoto.caption} · {selectedPhoto.category} · {selectedPhoto.date}</p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    const idx = filteredPhotos.findIndex((p) => p.id === selectedPhoto.id);
-                    if (idx > 0) setSelectedPhoto(filteredPhotos[idx - 1]);
-                  }}
-                  className="rounded border border-white/20 px-2 py-1 text-xs"
-                >
-                  Prev
-                </button>
-                <button
-                  onClick={() => {
-                    const idx = filteredPhotos.findIndex((p) => p.id === selectedPhoto.id);
-                    if (idx >= 0 && idx < filteredPhotos.length - 1) setSelectedPhoto(filteredPhotos[idx + 1]);
-                  }}
-                  className="rounded border border-white/20 px-2 py-1 text-xs"
-                >
-                  Next
-                </button>
-                <button onClick={() => setSelectedPhoto(null)} className="rounded border border-white/20 px-2 py-1 text-xs">Close</button>
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </div>

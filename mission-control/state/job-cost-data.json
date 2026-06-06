@@ -1,0 +1,1021 @@
+{
+  "jobs": [
+    {
+      "id": "job-205",
+      "sourceJobId": "job-205",
+      "jobName": "Mike Jones House",
+      "lineItems": {
+        "Site/Precon": [
+          {
+            "name": "Permits",
+            "budget": 750
+          },
+          {
+            "name": "Stakeout survey",
+            "budget": 800
+          },
+          {
+            "name": "Grading / dirt work",
+            "budget": 8500
+          },
+          {
+            "name": "Rough cleaning / power washing",
+            "budget": 1600
+          },
+          {
+            "name": "Final clean",
+            "budget": 750
+          },
+          {
+            "name": "Portable toilet",
+            "budget": 580
+          },
+          {
+            "name": "Dumpster",
+            "budget": 1400
+          },
+          {
+            "name": "Window protection",
+            "budget": 2495
+          },
+          {
+            "name": "Landscape allowance",
+            "budget": 4500
+          },
+          {
+            "name": "Driveway / sidewalks allowance",
+            "budget": 5000
+          },
+          {
+            "name": "Septic / sewage allowance",
+            "budget": 6500
+          },
+          {
+            "name": "Door locks / knobs / bath hardware",
+            "budget": 1150
+          },
+          {
+            "name": "Shower door",
+            "budget": 1100
+          },
+          {
+            "name": "Termite bond",
+            "budget": 776
+          },
+          {
+            "name": "Blower door test",
+            "budget": 250
+          },
+          {
+            "name": "Building overhead fee (5%)",
+            "budget": 12379.97
+          },
+          {
+            "name": "Builder fee (15%)",
+            "budget": 38996.91
+          }
+        ],
+        "Shell": [
+          {
+            "name": "Footings / foundation / slab",
+            "budget": 11500
+          },
+          {
+            "name": "Pump truck for concrete",
+            "budget": 1630
+          },
+          {
+            "name": "Framing materials",
+            "budget": 27368.43
+          },
+          {
+            "name": "Framing labor",
+            "budget": 13800
+          },
+          {
+            "name": "Windows & exterior doors",
+            "budget": 5450
+          },
+          {
+            "name": "Fireplace",
+            "budget": 0
+          },
+          {
+            "name": "Roofing",
+            "budget": 4950
+          }
+        ],
+        "MEP": [
+          {
+            "name": "HVAC",
+            "budget": 12500
+          },
+          {
+            "name": "Plumbing labor",
+            "budget": 9850
+          },
+          {
+            "name": "Plumbing fixtures",
+            "budget": 4800
+          },
+          {
+            "name": "Electrical labor",
+            "budget": 8500
+          },
+          {
+            "name": "Electrical fixtures",
+            "budget": 3000
+          },
+          {
+            "name": "Insulation",
+            "budget": 7250
+          }
+        ],
+        "Interior": [
+          {
+            "name": "Drywall hang & finish",
+            "budget": 4500
+          },
+          {
+            "name": "Drywall materials",
+            "budget": 2800
+          },
+          {
+            "name": "Interior doors & trim materials",
+            "budget": 5000
+          },
+          {
+            "name": "Trim labor",
+            "budget": 4000
+          },
+          {
+            "name": "Painting",
+            "budget": 13900
+          },
+          {
+            "name": "Cabinets",
+            "budget": 20955
+          },
+          {
+            "name": "Granite / quartz",
+            "budget": 4000
+          },
+          {
+            "name": "Floors / tile showers / backsplash materials",
+            "budget": 9000
+          },
+          {
+            "name": "Floors & showers labor",
+            "budget": 7500
+          },
+          {
+            "name": "Appliances allowance",
+            "budget": 6500
+          }
+        ],
+        "Exterior": [
+          {
+            "name": "Eaves / porch / Hardie / shutters",
+            "budget": 16845
+          },
+          {
+            "name": "Brick materials",
+            "budget": 1800
+          },
+          {
+            "name": "Masonry sand",
+            "budget": 850
+          },
+          {
+            "name": "Brick labor",
+            "budget": 3200
+          }
+        ]
+      },
+      "totalBudget": 298976.31
+    },
+    {
+      "id": "job-204",
+      "sourceJobId": "job-204",
+      "jobName": "Tanner House",
+      "lineItems": {
+        "Site/Precon": [
+          {
+            "name": "Termite spray",
+            "budget": 1600
+          },
+          {
+            "name": "Permits",
+            "budget": 1800
+          },
+          {
+            "name": "Stakeout survey",
+            "budget": 850
+          },
+          {
+            "name": "Grading / dirt work",
+            "budget": 12500
+          },
+          {
+            "name": "Dumpster",
+            "budget": 2125
+          },
+          {
+            "name": "Final clean",
+            "budget": 1000
+          },
+          {
+            "name": "plumbing labor",
+            "budget": 12660
+          },
+          {
+            "name": "Rough Cleaning",
+            "budget": 1000
+          },
+          {
+            "name": "Portable Toilet",
+            "budget": 580
+          },
+          {
+            "name": "Window Protection",
+            "budget": 4295
+          },
+          {
+            "name": "Landscaping",
+            "budget": 4000
+          },
+          {
+            "name": "Driveway allowance",
+            "budget": 5000
+          },
+          {
+            "name": "Septic / Sewage",
+            "budget": 6000
+          },
+          {
+            "name": "Doorlocks / knobs / bath hardware",
+            "budget": 1500
+          },
+          {
+            "name": "Shower door",
+            "budget": 2500
+          },
+          {
+            "name": "Blower door test",
+            "budget": 250
+          },
+          {
+            "name": "Water well",
+            "budget": 6000
+          }
+        ],
+        "Shell": [
+          {
+            "name": "Footings / foundation / slab",
+            "budget": 18500
+          },
+          {
+            "name": "Pump truck for concrete",
+            "budget": 1850
+          },
+          {
+            "name": "Framing materials",
+            "budget": 49365
+          },
+          {
+            "name": "Framing labor",
+            "budget": 25000
+          },
+          {
+            "name": "Windows & exterior doors",
+            "budget": 12089
+          },
+          {
+            "name": "Fireplace",
+            "budget": 2000
+          },
+          {
+            "name": "Roofing",
+            "budget": 13850
+          }
+        ],
+        "MEP": [
+          {
+            "name": "HVAC",
+            "budget": 10691
+          },
+          {
+            "name": "Electrical labor",
+            "budget": 14038
+          },
+          {
+            "name": "Electrical fixtures",
+            "budget": 4000
+          },
+          {
+            "name": "Insulation",
+            "budget": 10143
+          },
+          {
+            "name": "Plumbing fixtures",
+            "budget": 8000
+          }
+        ],
+        "Interior": [
+          {
+            "name": "Drywall hang & finish",
+            "budget": 9500
+          },
+          {
+            "name": "Drywall materials",
+            "budget": 4500
+          },
+          {
+            "name": "Interior doors & trim materials",
+            "budget": 10880
+          },
+          {
+            "name": "Trim labor",
+            "budget": 10383
+          },
+          {
+            "name": "Painting",
+            "budget": 11450
+          },
+          {
+            "name": "Cabinets",
+            "budget": 21297
+          },
+          {
+            "name": "Granite / quartz",
+            "budget": 4950
+          },
+          {
+            "name": "Floors / tile / backsplash",
+            "budget": 12000
+          },
+          {
+            "name": "Floors & showers labor",
+            "budget": 9400
+          },
+          {
+            "name": "Appliances allowance",
+            "budget": 7500
+          }
+        ],
+        "Exterior": [
+          {
+            "name": "Eaves / porch / Hardie / shutters",
+            "budget": 22900
+          },
+          {
+            "name": "Brick materials",
+            "budget": 7750
+          },
+          {
+            "name": "Masonry sand",
+            "budget": 850
+          },
+          {
+            "name": "Brick labor",
+            "budget": 7500
+          }
+        ]
+      },
+      "totalBudget": 374046
+    },
+    {
+      "id": "job-202",
+      "sourceJobId": "job-202",
+      "jobName": "Dempsey House",
+      "lineItems": {
+        "Site/Precon": [
+          {
+            "name": "Permits",
+            "budget": 6975.42
+          },
+          {
+            "name": "Stakeout survey",
+            "budget": 800
+          },
+          {
+            "name": "Grading / dirt work",
+            "budget": 10000
+          },
+          {
+            "name": "Dumpster",
+            "budget": 1700
+          },
+          {
+            "name": "Final clean",
+            "budget": 1000
+          },
+          {
+            "name": "pillings",
+            "budget": 9451.2
+          },
+          {
+            "name": "pilling labor install",
+            "budget": 14500
+          },
+          {
+            "name": "plumbing labor",
+            "budget": 10000
+          },
+          {
+            "name": "lull rental",
+            "budget": 6000
+          },
+          {
+            "name": "sand for back of lot",
+            "budget": 4000
+          },
+          {
+            "name": "floors/ tile showers/ backsplash materials",
+            "budget": 8500
+          },
+          {
+            "name": "floors and showers labor",
+            "budget": 7300
+          },
+          {
+            "name": "Elevator",
+            "budget": 28500
+          },
+          {
+            "name": "Rough cleaning",
+            "budget": 1000
+          },
+          {
+            "name": "Portable Toilet",
+            "budget": 580
+          },
+          {
+            "name": "Landscape allowance",
+            "budget": 4000
+          },
+          {
+            "name": "Doorlocks/ knobs/ bath hardware",
+            "budget": 1000
+          },
+          {
+            "name": "shower door",
+            "budget": 1800
+          },
+          {
+            "name": "Termite bond",
+            "budget": 1075
+          },
+          {
+            "name": "Blower door test",
+            "budget": 250
+          },
+          {
+            "name": "Deck and handrails",
+            "budget": 6000
+          },
+          {
+            "name": "Plan copies",
+            "budget": 225
+          },
+          {
+            "name": "Soil bore test",
+            "budget": 3750
+          }
+        ],
+        "Shell": [
+          {
+            "name": "Footings / foundation / slab",
+            "budget": 17200
+          },
+          {
+            "name": "Pump truck for concrete",
+            "budget": 2000
+          },
+          {
+            "name": "Framing materials",
+            "budget": 50500
+          },
+          {
+            "name": "Framing labor",
+            "budget": 30700
+          },
+          {
+            "name": "Windows & exterior doors",
+            "budget": 17889
+          },
+          {
+            "name": "Roofing",
+            "budget": 16600
+          }
+        ],
+        "MEP": [
+          {
+            "name": "HVAC",
+            "budget": 11700
+          },
+          {
+            "name": "Electrical labor",
+            "budget": 16352
+          },
+          {
+            "name": "Electrical fixtures",
+            "budget": 2700
+          },
+          {
+            "name": "Insulation",
+            "budget": 6500
+          },
+          {
+            "name": "Plumbing fixtures",
+            "budget": 4500
+          }
+        ],
+        "Interior": [
+          {
+            "name": "Drywall hang & finish",
+            "budget": 5000
+          },
+          {
+            "name": "Drywall materials",
+            "budget": 2600
+          },
+          {
+            "name": "Interior doors & trim materials",
+            "budget": 4000
+          },
+          {
+            "name": "Trim labor",
+            "budget": 9900
+          },
+          {
+            "name": "Painting",
+            "budget": 18855
+          },
+          {
+            "name": "Cabinets",
+            "budget": 22687
+          },
+          {
+            "name": "Granite / quartz",
+            "budget": 3930
+          },
+          {
+            "name": "Appliances allowance",
+            "budget": 5000
+          }
+        ],
+        "Exterior": [
+          {
+            "name": "Eaves / porch / Hardie / shutters",
+            "budget": 30580
+          }
+        ]
+      },
+      "totalBudget": 407599.62
+    },
+    {
+      "id": "job-209",
+      "sourceJobId": "job-209",
+      "jobName": "Mertz House",
+      "lineItems": {
+        "Site/Precon": [
+          {
+            "name": "Termite spray",
+            "budget": 800
+          },
+          {
+            "name": "Permits",
+            "budget": 1500
+          },
+          {
+            "name": "Stakeout survey",
+            "budget": 850
+          },
+          {
+            "name": "Grading / dirt work",
+            "budget": 0
+          },
+          {
+            "name": "Dumpster",
+            "budget": 1400
+          },
+          {
+            "name": "Final clean",
+            "budget": 1000
+          }
+        ],
+        "Shell": [
+          {
+            "name": "Monolithic slab labor",
+            "budget": 0
+          },
+          {
+            "name": "Footings / foundation / slab",
+            "budget": 0
+          },
+          {
+            "name": "Pump truck for concrete",
+            "budget": 2000
+          },
+          {
+            "name": "Form labor",
+            "budget": 0
+          },
+          {
+            "name": "Framing materials",
+            "budget": 0
+          },
+          {
+            "name": "Framing labor",
+            "budget": 0
+          },
+          {
+            "name": "Windows & exterior doors",
+            "budget": 0
+          },
+          {
+            "name": "Fireplace",
+            "budget": 0
+          },
+          {
+            "name": "Roofing",
+            "budget": 0
+          }
+        ],
+        "MEP": [
+          {
+            "name": "HVAC",
+            "budget": 12700
+          },
+          {
+            "name": "Electrical labor",
+            "budget": 16500
+          },
+          {
+            "name": "Electrical fixtures",
+            "budget": 0
+          },
+          {
+            "name": "Insulation",
+            "budget": 9000
+          },
+          {
+            "name": "Plumbing fixtures",
+            "budget": 0
+          }
+        ],
+        "Interior": [
+          {
+            "name": "Drywall hang & finish",
+            "budget": 0
+          },
+          {
+            "name": "Drywall materials",
+            "budget": 0
+          },
+          {
+            "name": "Interior doors & trim materials",
+            "budget": 12342.99
+          },
+          {
+            "name": "Trim labor",
+            "budget": 0
+          },
+          {
+            "name": "Painting",
+            "budget": 18350
+          },
+          {
+            "name": "Cabinets",
+            "budget": 0
+          },
+          {
+            "name": "Granite / quartz",
+            "budget": 0
+          },
+          {
+            "name": "Floors / tile / backsplash",
+            "budget": 0
+          },
+          {
+            "name": "Floors & showers labor",
+            "budget": 0
+          },
+          {
+            "name": "Appliances allowance",
+            "budget": 0
+          },
+          {
+            "name": "Plumbing labor",
+            "budget": 11500
+          }
+        ],
+        "Exterior": [
+          {
+            "name": "Eaves / porch / Hardie / shutters",
+            "budget": 18585
+          },
+          {
+            "name": "Brick materials",
+            "budget": 12184.42
+          },
+          {
+            "name": "Masonry sand",
+            "budget": 850
+          },
+          {
+            "name": "Brick labor",
+            "budget": 0
+          },
+          {
+            "name": "Garage doors",
+            "budget": 0
+          }
+        ]
+      },
+      "totalBudget": 119562.40999999999
+    }
+  ],
+  "actuals": [
+    {
+      "id": "4dc05bb9-4594-442e-8424-a4bd21bb278d",
+      "jobId": "job-202",
+      "date": "2026-06-05",
+      "category": "Site/Precon",
+      "lineItem": "Soil bore test",
+      "description": "Geo Con",
+      "amount": 3750
+    },
+    {
+      "id": "cfe2dc80-4396-4824-9f66-2e1f710ceb26",
+      "jobId": "job-202",
+      "date": "2026-06-05",
+      "category": "Site/Precon",
+      "lineItem": "Stakeout survey",
+      "description": "stake out survey",
+      "amount": 800
+    },
+    {
+      "id": "3cb4bc83-3f8a-4f1b-8af4-403146f289c2",
+      "jobId": "job-202",
+      "date": "2026-06-05",
+      "category": "Site/Precon",
+      "lineItem": "Permits",
+      "description": "license Gulf Shores",
+      "amount": 545
+    },
+    {
+      "id": "984e064d-c007-4896-ac4a-d549c86be5d5",
+      "jobId": "job-202",
+      "date": "2026-06-05",
+      "category": "Site/Precon",
+      "lineItem": "Permits",
+      "description": "building permit",
+      "amount": 6430.42
+    },
+    {
+      "id": "b6cd7fdd-26fe-42da-9156-f4d627ccbf83",
+      "jobId": "job-202",
+      "date": "2026-06-05",
+      "category": "Site/Precon",
+      "lineItem": "Plan copies",
+      "description": "white plan box",
+      "amount": 49.09
+    },
+    {
+      "id": "5c469ca6-0c95-46c4-96f7-f85cf61c7473",
+      "jobId": "job-202",
+      "date": "2026-02-13",
+      "category": "Site/Precon",
+      "lineItem": "Plan copies",
+      "description": "plan copies at ARC",
+      "amount": 109.83
+    },
+    {
+      "id": "b1705f93-a3fe-4483-8867-466f101abee8",
+      "jobId": "job-202",
+      "date": "2026-02-23",
+      "category": "Site/Precon",
+      "lineItem": "pillings",
+      "description": "pilings",
+      "amount": 9451.2
+    },
+    {
+      "id": "2ef6e603-44d0-4230-8090-0d1ba1243c8f",
+      "jobId": "job-202",
+      "date": "2026-02-23",
+      "category": "Site/Precon",
+      "lineItem": "pilling labor install",
+      "description": "install pilings",
+      "amount": 14590
+    },
+    {
+      "id": "859ec6aa-be67-4213-bbe7-b89bd11c49ad",
+      "jobId": "job-202",
+      "date": "2026-03-23",
+      "category": "Site/Precon",
+      "lineItem": "lull rental",
+      "description": "Crane Works",
+      "amount": 4496.91
+    },
+    {
+      "id": "81c4459a-c23d-4974-83fc-1c56c8517538",
+      "jobId": "job-202",
+      "date": "2026-03-23",
+      "category": "Shell",
+      "lineItem": "Framing labor",
+      "description": "Joseph Flores Construction",
+      "amount": 5000
+    },
+    {
+      "id": "94e3a693-3d3b-4d72-9397-40681f113097",
+      "jobId": "job-202",
+      "date": "2026-03-23",
+      "category": "Shell",
+      "lineItem": "Framing materials",
+      "description": "builders firstsource",
+      "amount": 35937.34
+    },
+    {
+      "id": "ecb5c904-159f-4d64-8d1f-c576fe0bf290",
+      "jobId": "job-202",
+      "date": "2026-04-02",
+      "category": "MEP",
+      "lineItem": "Plumbing fixtures",
+      "description": "Ferguson , 2 shower faucets",
+      "amount": 3775.82
+    },
+    {
+      "id": "d4146efc-1f9e-448d-b8df-e9ee65f75f6e",
+      "jobId": "job-202",
+      "date": "2026-04-02",
+      "category": "MEP",
+      "lineItem": "Plumbing fixtures",
+      "description": "delta faucet.com",
+      "amount": 674.89
+    },
+    {
+      "id": "e6bf3172-f94c-4279-a3e1-d994497911e3",
+      "jobId": "job-202",
+      "date": "2026-04-03",
+      "category": "MEP",
+      "lineItem": "Plumbing fixtures",
+      "description": "win supply, spare tub",
+      "amount": 971.5
+    },
+    {
+      "id": "acd91bcd-9607-4dfe-b9d1-e28085f88f71",
+      "jobId": "job-202",
+      "date": "2026-04-07",
+      "category": "Interior",
+      "lineItem": "Cabinets",
+      "description": "deposit on cabinets",
+      "amount": 12714
+    },
+    {
+      "id": "5c00e7ee-cb79-4f76-96be-6ac09b9640b6",
+      "jobId": "job-202",
+      "date": "2026-04-10",
+      "category": "Shell",
+      "lineItem": "Framing labor",
+      "description": "Joseph Flores Construction",
+      "amount": 9000
+    },
+    {
+      "id": "23faf006-26df-469b-bbb5-a5964a94b177",
+      "jobId": "job-202",
+      "date": "2026-04-16",
+      "category": "Site/Precon",
+      "lineItem": "plumbing labor",
+      "description": "water heaters only, rough in, top out, gas line",
+      "amount": 6584
+    },
+    {
+      "id": "5ca5856c-97ab-46e2-818c-268e3a59be77",
+      "jobId": "job-202",
+      "date": "2026-04-21",
+      "category": "MEP",
+      "lineItem": "HVAC",
+      "description": "rough in AC, Today Heating and Air",
+      "amount": 7020
+    },
+    {
+      "id": "4288fddf-901d-40ab-980d-0c1ceba1d9f0",
+      "jobId": "job-202",
+      "date": "2026-04-16",
+      "category": "MEP",
+      "lineItem": "Electrical labor",
+      "description": "Foster's electrical",
+      "amount": 8176
+    },
+    {
+      "id": "04e96803-25a6-4603-a7ec-a7c3e265b2b5",
+      "jobId": "job-202",
+      "date": "2026-04-24",
+      "category": "Shell",
+      "lineItem": "Framing labor",
+      "description": "Joseph Flores Construction",
+      "amount": 1500
+    },
+    {
+      "id": "318ab97d-de09-4feb-b264-ac83f258904d",
+      "jobId": "job-202",
+      "date": "2026-04-27",
+      "category": "Shell",
+      "lineItem": "Framing materials",
+      "description": "Builder's Firstsource",
+      "amount": 5024.16
+    },
+    {
+      "id": "d1a118a2-c6c3-4892-aea5-94af3466103e",
+      "jobId": "job-202",
+      "date": "2026-04-29",
+      "category": "Site/Precon",
+      "lineItem": "lull rental",
+      "description": "lull pick up and fuel charge, Crane Works",
+      "amount": 587.73
+    },
+    {
+      "id": "2473ee56-ade4-4250-a92b-b4194cbc9be0",
+      "jobId": "job-202",
+      "date": "2026-05-05",
+      "category": "Interior",
+      "lineItem": "Drywall materials",
+      "description": "L&W Supply, AC closet",
+      "amount": 78.19
+    },
+    {
+      "id": "5b155528-3c5d-4d0a-b40f-514dba719a0d",
+      "jobId": "job-202",
+      "date": "2026-05-06",
+      "category": "Shell",
+      "lineItem": "Windows & exterior doors",
+      "description": "Jemison window and door",
+      "amount": 17889
+    },
+    {
+      "id": "3868aa9d-8265-4d10-9f08-c4857f3f4607",
+      "jobId": "job-202",
+      "date": "2026-05-15",
+      "category": "Shell",
+      "lineItem": "Roofing",
+      "description": "metal roof, Integrity Roofing",
+      "amount": 16600
+    },
+    {
+      "id": "834a154a-5174-4e1b-98aa-286bdf767e18",
+      "jobId": "job-202",
+      "date": "2026-05-19",
+      "category": "Exterior",
+      "lineItem": "Eaves / porch / Hardie / shutters",
+      "description": "siding materials, Southern Building Products",
+      "amount": 10259.63
+    },
+    {
+      "id": "6e67e07b-2df2-4862-81dc-32154422b48f",
+      "jobId": "job-202",
+      "date": "2026-05-21",
+      "category": "Site/Precon",
+      "lineItem": "Grading / dirt work",
+      "description": "grade work under home, Modern Day Landscaping",
+      "amount": 1550
+    },
+    {
+      "id": "29eac623-cb1b-496f-bc28-336b020ea5f8",
+      "jobId": "job-202",
+      "date": "2026-05-21",
+      "category": "Site/Precon",
+      "lineItem": "Grading / dirt work",
+      "description": "8 loads sand, 1 load crushed concrete, Baldwin Sand and Gravel",
+      "amount": 5695.56
+    },
+    {
+      "id": "afe472d5-75e2-4ea0-85bc-6661943a8919",
+      "jobId": "job-202",
+      "date": "2026-05-27",
+      "category": "Site/Precon",
+      "lineItem": "Permits",
+      "description": "gulf shores inspection fee",
+      "amount": 52.5
+    },
+    {
+      "id": "532b8c14-1cd5-46d3-8a00-ecfba980eb15",
+      "jobId": "job-202",
+      "date": "2026-05-28",
+      "category": "Site/Precon",
+      "lineItem": "plumbing labor",
+      "description": "water line out to bike path water meter",
+      "amount": 2252
+    },
+    {
+      "id": "60e92ef4-1d77-4659-9d40-9d0848a3e36f",
+      "jobId": "job-202",
+      "date": "2026-06-02",
+      "category": "Shell",
+      "lineItem": "Pump truck for concrete",
+      "description": "Brundage Bone Concrete Pumping",
+      "amount": 1474.67
+    }
+  ]
+}

@@ -130,16 +130,16 @@ export function DashboardClient({
 
   return (
     <>
-      <section className="mission-panel p-5 sm:p-6">
+      <section className="mission-panel p-4 sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
+          <div className="min-w-0">
             <p className="text-sm text-zinc-400">Decision-first command view for houses, schedule, risks, and next moves.</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight">Build smarter. Miss less.</h2>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Build smarter. Miss less.</h2>
           </div>
-          <div className="flex flex-wrap gap-2 text-sm">
+          <div className="grid grid-cols-2 gap-2 text-sm sm:flex sm:flex-wrap">
             <button
               onClick={() => setSelectedJobId("all")}
-              className={`rounded-2xl px-4 py-2 transition ${selectedJobId === "all" ? "bg-white text-zinc-950" : "border border-white/10 bg-white/5 text-zinc-200 hover:bg-white/10"}`}
+              className={`min-h-11 rounded-2xl px-3 py-2 transition ${selectedJobId === "all" ? "bg-white text-zinc-950" : "border border-white/10 bg-white/5 text-zinc-200 hover:bg-white/10"}`}
             >
               All Houses
             </button>
@@ -147,26 +147,26 @@ export function DashboardClient({
               <button
                 key={job.id}
                 onClick={() => setSelectedJobId(job.id)}
-                className={`rounded-2xl px-4 py-2 transition ${selectedJobId === job.id ? "bg-white text-zinc-950" : "border border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10"}`}
+                className={`min-h-11 rounded-2xl px-3 py-2 transition ${selectedJobId === job.id ? "bg-white text-zinc-950" : "border border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10"}`}
               >
                 {job.name}
               </button>
             ))}
-            <Link href="/calendar" className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-cyan-200">
+            <Link href="/calendar" className="min-h-11 rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-3 py-2 text-center text-cyan-200">
               Open calendar
             </Link>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
         {[
           { label: "Active jobs", value: metrics.activeJobs, detail: selectedJob ? selectedJob.name : "Master view" },
           { label: "Due today", value: metrics.dueToday, detail: "Fastest path to action" },
           { label: "At risk", value: metrics.atRisk, detail: "Needs attention now" },
           { label: "Avg progress", value: `${metrics.avgProgress}%`, detail: "Across selected work" },
         ].map((item) => (
-          <div key={item.label} className="mission-panel p-5">
+          <div key={item.label} className="mission-panel p-4 sm:p-5">
             <p className="text-sm text-zinc-400">{item.label}</p>
             <p className="mt-3 text-3xl font-semibold">{item.value}</p>
             <p className="mt-2 text-sm text-zinc-500">{item.detail}</p>

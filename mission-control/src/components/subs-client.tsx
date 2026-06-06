@@ -1,5 +1,6 @@
 "use client";
 
+import { upload } from "@vercel/blob/client";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type SubRecord = {
@@ -10,8 +11,10 @@ type SubRecord = {
   email: string;
   glPolicy: string;
   glExpires: string;
+  glFile?: string;
   wcPolicy: string;
   wcExpires: string;
+  wcFile?: string;
   notes: string;
 };
 
@@ -28,6 +31,8 @@ const emptySub = (): SubRecord => ({
   notes: "",
 });
 
+type UploadStatus = { type: "gl" | "wc"; message: string; success: boolean } | null;
+
 const daysUntil = (dateStr: string) => {
   if (!dateStr) return null;
   const now = new Date();
@@ -41,6 +46,7 @@ export function SubsClient() {
   const [loaded, setLoaded] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [quick, setQuick] = useState({ name: "", trade: "", phone: "", email: "" });
+  const [uploadStatus, setUploadStatus] = useState<UploadStatus>(null);
   const localKey = "subs-insurance-cache";
   const rowsRef = useRef<SubRecord[]>([]);
   const writeSeqRef = useRef(0);
@@ -61,28 +67,58 @@ export function SubsClient() {
   };
 
   const uploadInsurance = async (id: string, type: "gl" | "wc", file: File) => {
+    console.log("[Upload] Starting upload for", type, file.name);
+    setUploadStatus({ type, message: `Uploading "${file.name}"...`, success: true });
+    
     try {
-      const body = new FormData();
-      body.append("file", file);
-      body.append("type", type);
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `insurance/${type}/${id}/${Date.now()}-${safeName}`;
 
-      const res = await fetch("/api/subs-insurance/extract", { method: "POST", body });
-      if (!res.ok) return;
-      const data = await res.json();
-      if (!data?.found || !data?.expirationDate) return;
+      const blob = await upload(path, file, {
+        access: "private",
+        handleUploadUrl: "/api/blob/upload",
+        multipart: true,
+      });
+
+      let extractedDate: string | null = null;
+      try {
+        const extractBody = new FormData();
+        extractBody.append("file", file);
+        extractBody.append("type", type);
+        const extractRes = await fetch("/api/subs-insurance/extract", { method: "POST", body: extractBody });
+        if (extractRes.ok) {
+          const extractData = await extractRes.json();
+          if (extractData?.found && typeof extractData.expirationDate === "string") {
+            extractedDate = extractData.expirationDate;
+          }
+        }
+      } catch {
+        // ignore extraction errors, upload still succeeded
+      }
 
       setRows((prev) => {
         const next = prev.map((r) => {
           if (r.id !== id) return r;
-          return type === "gl" ? { ...r, glExpires: data.expirationDate } : { ...r, wcExpires: data.expirationDate };
+          if (type === "gl") {
+            return { ...r, glFile: blob.url, glExpires: extractedDate ?? r.glExpires };
+          }
+          return { ...r, wcFile: blob.url, wcExpires: extractedDate ?? r.wcExpires };
         });
-        localStorage.setItem(localKey, JSON.stringify(next));
         void pushRows(next, ++writeSeqRef.current);
         return next;
       });
       setDirty(true);
-    } catch {
-      // ignore
+      setUploadStatus({
+        type,
+        message: extractedDate
+          ? `Saved "${file.name}". Expiration auto-filled: ${extractedDate}.`
+          : `Saved "${file.name}". Could not auto-read expiration date; enter it manually.`,
+        success: true,
+      });
+      setTimeout(() => setUploadStatus(null), 7000);
+    } catch (e) {
+      console.error("[Upload] Error:", e);
+      setUploadStatus({ type, message: e instanceof Error ? e.message : "Upload failed", success: false });
     }
   };
 
@@ -251,6 +287,14 @@ export function SubsClient() {
         </div>
       </section>
 
+      {uploadStatus && (
+        <section className={`mission-panel p-4 ${uploadStatus.success ? 'border-l-4 border-emerald-500' : 'border-l-4 border-rose-500'}`}>
+          <p className={`text-sm ${uploadStatus.success ? 'text-emerald-100' : 'text-rose-100'}`}>
+            <span className="font-semibold">{uploadStatus.type.toUpperCase()} Upload:</span> {uploadStatus.message}
+          </p>
+        </section>
+      )}
+
       <section className="mission-panel p-6">
         <h3 className="text-lg font-semibold">Insurance alerts (next 30 days)</h3>
         {alerts.length ? (
@@ -275,33 +319,30 @@ export function SubsClient() {
                 <input value={r.trade} onChange={(e) => setCell(r.id, "trade", e.target.value)} placeholder="Trade" className="w-full rounded border border-white/10 bg-black/30 px-2 py-2" />
                 <input value={r.phone} onChange={(e) => setCell(r.id, "phone", e.target.value)} placeholder="Phone" className="w-full rounded border border-white/10 bg-black/30 px-2 py-2" />
                 <input value={r.email} onChange={(e) => setCell(r.id, "email", e.target.value)} placeholder="Email" className="w-full rounded border border-white/10 bg-black/30 px-2 py-2" />
-                <input value={r.glPolicy} onChange={(e) => setCell(r.id, "glPolicy", e.target.value)} placeholder="GL Policy" className="w-full rounded border border-white/10 bg-black/30 px-2 py-2" />
                 <input type="date" value={r.glExpires} onChange={(e) => setCell(r.id, "glExpires", e.target.value)} className="w-full rounded border border-white/10 bg-black/30 px-2 py-2" style={{ colorScheme: "dark" }} />
                 <input
                   type="file"
-                  accept=".pdf,.png,.jpg,.jpeg"
+                  id={`gl-file-${r.id}`}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
+                    console.log("[FileInput] GL selected:", file?.name);
                     if (file) void uploadInsurance(r.id, "gl", file);
-                    e.currentTarget.value = "";
                   }}
                   className="w-full rounded border border-white/10 bg-black/30 p-2 text-xs text-zinc-300 file:mr-2 file:rounded file:border-0 file:bg-zinc-700 file:px-2 file:py-1 file:text-xs file:text-zinc-100"
-                  style={{ colorScheme: "dark" }}
                 />
-                <input value={r.wcPolicy} onChange={(e) => setCell(r.id, "wcPolicy", e.target.value)} placeholder="WC Policy" className="w-full rounded border border-white/10 bg-black/30 px-2 py-2" />
                 <input type="date" value={r.wcExpires} onChange={(e) => setCell(r.id, "wcExpires", e.target.value)} className="w-full rounded border border-white/10 bg-black/30 px-2 py-2" style={{ colorScheme: "dark" }} />
                 <input
                   type="file"
-                  accept=".pdf,.png,.jpg,.jpeg"
+                  id={`wc-file-${r.id}`}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
+                    console.log("[FileInput] WC selected:", file?.name);
                     if (file) void uploadInsurance(r.id, "wc", file);
-                    e.currentTarget.value = "";
                   }}
                   className="w-full rounded border border-white/10 bg-black/30 p-2 text-xs text-zinc-300 file:mr-2 file:rounded file:border-0 file:bg-zinc-700 file:px-2 file:py-1 file:text-xs file:text-zinc-100"
-                  style={{ colorScheme: "dark" }}
                 />
-                <input value={r.notes} onChange={(e) => setCell(r.id, "notes", e.target.value)} placeholder="Notes" className="w-full rounded border border-white/10 bg-black/30 px-2 py-2" />
+                {r.glFile && <a href={r.glFile} target="_blank" className="text-xs text-cyan-400 hover:underline">View GL file</a>}
+                {r.wcFile && <a href={r.wcFile} target="_blank" className="text-xs text-cyan-400 hover:underline">View WC file</a>}
               </div>
               <div className="mt-3 flex justify-end">
                 <button
@@ -332,17 +373,14 @@ export function SubsClient() {
                   "Sub",
                   "Trade",
                   "Email",
-                  "GL Policy",
                   "GL Expires",
-                  "GL File",
-                  "WC Policy",
+                  "Upload GL",
                   "WC Expires",
-                  "WC File",
-                  "Notes",
-                  "",
+                  "Upload WC",
                 ].map((h) => (
                   <th key={h} className="bg-[#09090b] px-2 py-2 text-left font-medium">{h}</th>
                 ))}
+                <th className="bg-[#09090b] px-2 py-2 text-left font-medium"></th>
               </tr>
             </thead>
             <tbody>
@@ -351,41 +389,38 @@ export function SubsClient() {
                   <td className="bg-[#09090b] p-2"><input value={r.name} onChange={(e) => setCell(r.id, "name", e.target.value)} className="w-40 rounded border border-white/10 bg-black/30 px-2 py-1" /></td>
                   <td className="bg-[#09090b] p-2"><input value={r.trade} onChange={(e) => setCell(r.id, "trade", e.target.value)} className="w-32 rounded border border-white/10 bg-black/30 px-2 py-1" /></td>
                   <td className="bg-[#09090b] p-2"><input value={r.email} onChange={(e) => setCell(r.id, "email", e.target.value)} className="w-44 rounded border border-white/10 bg-black/30 px-2 py-1" /></td>
-                  <td className="bg-[#09090b] p-2"><input value={r.glPolicy} onChange={(e) => setCell(r.id, "glPolicy", e.target.value)} className="w-36 rounded border border-white/10 bg-black/30 px-2 py-1" /></td>
                   <td className="bg-[#09090b] p-2">
                     <input type="date" value={r.glExpires} onChange={(e) => setCell(r.id, "glExpires", e.target.value)} className="w-36 rounded border border-white/10 bg-black/30 px-2 py-1" style={{ colorScheme: "dark" }} />
+                    {r.glFile && <a href={r.glFile} target="_blank" className="block text-xs text-cyan-400 hover:underline mt-1">View file</a>}
                   </td>
                   <td className="bg-[#09090b] p-2">
                     <input
                       type="file"
-                      accept=".pdf,.png,.jpg,.jpeg"
+                      data-type="gl"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
+                        console.log("[Desktop] GL file selected:", file?.name);
                         if (file) void uploadInsurance(r.id, "gl", file);
-                        e.currentTarget.value = "";
                       }}
                       className="w-44 rounded border border-white/10 bg-black/30 p-1 text-xs text-zinc-300 file:mr-2 file:rounded file:border-0 file:bg-zinc-700 file:px-2 file:py-1 file:text-xs file:text-zinc-100"
-                      style={{ colorScheme: "dark" }}
                     />
                   </td>
-                  <td className="bg-[#09090b] p-2"><input value={r.wcPolicy} onChange={(e) => setCell(r.id, "wcPolicy", e.target.value)} className="w-36 rounded border border-white/10 bg-black/30 px-2 py-1" /></td>
                   <td className="bg-[#09090b] p-2">
                     <input type="date" value={r.wcExpires} onChange={(e) => setCell(r.id, "wcExpires", e.target.value)} className="w-36 rounded border border-white/10 bg-black/30 px-2 py-1" style={{ colorScheme: "dark" }} />
+                    {r.wcFile && <a href={r.wcFile} target="_blank" className="block text-xs text-cyan-400 hover:underline mt-1">View file</a>}
                   </td>
                   <td className="bg-[#09090b] p-2">
                     <input
                       type="file"
-                      accept=".pdf,.png,.jpg,.jpeg"
+                      data-type="wc"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
+                        console.log("[Desktop] WC file selected:", file?.name);
                         if (file) void uploadInsurance(r.id, "wc", file);
-                        e.currentTarget.value = "";
                       }}
                       className="w-44 rounded border border-white/10 bg-black/30 p-1 text-xs text-zinc-300 file:mr-2 file:rounded file:border-0 file:bg-zinc-700 file:px-2 file:py-1 file:text-xs file:text-zinc-100"
-                      style={{ colorScheme: "dark" }}
                     />
                   </td>
-                  <td className="bg-[#09090b] p-2"><input value={r.notes} onChange={(e) => setCell(r.id, "notes", e.target.value)} className="w-56 rounded border border-white/10 bg-black/30 px-2 py-1" /></td>
                   <td className="bg-[#09090b] p-2">
                     <button
                       type="button"

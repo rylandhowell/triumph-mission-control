@@ -84,6 +84,26 @@ a {
   text-decoration: none;
 }
 
+.mission-mobile .mission-main {
+  max-width: 100%;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+.mission-mobile .mission-desktop-sidebar {
+  display: none !important;
+}
+
+.mission-mobile .mission-mobile-sidebar {
+  display: block !important;
+}
+
+@media (max-width: 1023px) {
+  .mission-panel {
+    border-radius: 1rem;
+  }
+}
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);

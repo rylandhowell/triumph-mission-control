@@ -1,676 +1,336 @@
 "use client";
 
-import { useMemo, useState } from "react";
-
-type SiteCondition = "easy" | "normal" | "hard";
-type FinishTier = "good" | "better" | "best";
-
-type CostItem = {
-  name: string;
-  amount: number;
-  category: "Site/Precon" | "Shell" | "MEP" | "Interior" | "Exterior";
-};
-
-const BASE_ITEMS: CostItem[] = [
-  { name: "Permits", amount: 1500, category: "Site/Precon" },
-  { name: "Termite spray", amount: 1300, category: "Site/Precon" },
-  { name: "Stakeout survey", amount: 800, category: "Site/Precon" },
-  { name: "Grading / dirt work", amount: 12000, category: "Site/Precon" },
-  { name: "Footings / foundation / slab", amount: 27000, category: "Shell" },
-  { name: "Monolithic slab labor", amount: 4200, category: "Shell" },
-  { name: "Pump truck for concrete", amount: 1900, category: "Shell" },
-  { name: "Form labor", amount: 14400, category: "Shell" },
-  { name: "Framing materials", amount: 48900, category: "Shell" },
-  { name: "Framing labor", amount: 30100, category: "Shell" },
-  { name: "Windows & exterior doors", amount: 10387.3, category: "Shell" },
-  { name: "Fireplace", amount: 5000, category: "Interior" },
-  { name: "Roofing", amount: 10000, category: "Exterior" },
-  { name: "HVAC", amount: 12100, category: "MEP" },
-  { name: "Electrical labor", amount: 15500, category: "MEP" },
-  { name: "Insulation", amount: 10762, category: "MEP" },
-  { name: "Drywall hang & finish", amount: 11300, category: "Interior" },
-  { name: "Drywall materials", amount: 5378.54, category: "Interior" },
-  { name: "Interior doors & trim materials", amount: 9628.67, category: "Interior" },
-  { name: "Trim labor", amount: 7100, category: "Interior" },
-  { name: "Painting", amount: 22000, category: "Interior" },
-  { name: "Cabinets", amount: 37408, category: "Interior" },
-  { name: "Granite / quartz", amount: 7300, category: "Interior" },
-  { name: "Eaves / porch / Hardie / shutters", amount: 18500, category: "Exterior" },
-  { name: "Brick materials", amount: 9800, category: "Exterior" },
-  { name: "Masonry sand", amount: 850, category: "Exterior" },
-  { name: "Brick labor", amount: 9800, category: "Exterior" },
-  { name: "Floors / tile / backsplash materials", amount: 15000, category: "Interior" },
-  { name: "Floors & showers labor", amount: 10050, category: "Interior" },
-  { name: "Plumbing fixtures", amount: 13000, category: "MEP" },
-  { name: "Electrical fixtures", amount: 50000, category: "MEP" },
-  { name: "Appliances allowance", amount: 7500, category: "Interior" },
-  { name: "Garage doors", amount: 3515, category: "Exterior" },
-  { name: "Dumpster", amount: 1950, category: "Site/Precon" },
-  { name: "Final clean", amount: 775, category: "Interior" },
-];
+import { useEffect, useMemo, useState } from "react";
 
 const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(value);
 
-const ESTIMATOR_EXPORT_KEY = "mission-control-estimator-line-items-v1";
+const formatNumberWithCommas = (value: string): string => {
+  const parts = value.split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return parts.join('.');
+};
+
+type Confidence = "low" | "medium" | "high";
+type BudgetCategory = { id: string; name: string; amount: number };
+
+const STORAGE_KEY = "mission-estimator-v2";
+
+const readSaved = () => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
 
 export function EstimatorClient() {
+  const saved = readSaved();
+
+  const [heatedSqft, setHeatedSqft] = useState(saved?.heatedSqft ?? 2100);
+  const [underRoofSqft, setUnderRoofSqft] = useState(saved?.underRoofSqft ?? 2600);
+  const [garageSqft, setGarageSqft] = useState(saved?.garageSqft ?? 500);
+
+  const [wallHeightFt, setWallHeightFt] = useState(saved?.wallHeightFt ?? 9);
+  const [drywallSqft, setDrywallSqft] = useState(saved?.drywallSqft ?? 6300);
+  const [brickSqft, setBrickSqft] = useState(saved?.brickSqft ?? 1820);
+  const [windowDoorCount, setWindowDoorCount] = useState(saved?.windowDoorCount ?? 34);
+
+  const [drywallRate, setDrywallRate] = useState(saved?.drywallRate ?? 2.6);
+  const [brickRate, setBrickRate] = useState(saved?.brickRate ?? 9.5);
+  const [windowDoorUnit, setWindowDoorUnit] = useState(saved?.windowDoorUnit ?? 420);
+  const [baseSiteCost, setBaseSiteCost] = useState(saved?.baseSiteCost ?? 34801);
+  const [overheadPct, setOverheadPct] = useState(saved?.overheadPct ?? 5);
+  const [builderFeePct, setBuilderFeePct] = useState(saved?.builderFeePct ?? 15);
+  const [budgetCategories, setBudgetCategories] = useState<BudgetCategory[]>(saved?.budgetCategories ?? []);
+  const [newBudgetName, setNewBudgetName] = useState("");
+  const [newBudgetAmount, setNewBudgetAmount] = useState<string>("");
+  const [budgetInputs, setBudgetInputs] = useState<Record<string, string>>({});
+
   const [planFiles, setPlanFiles] = useState<File[]>([]);
-  const [takeoffStatus, setTakeoffStatus] = useState<string>("");
-  const [takeoffConfidence, setTakeoffConfidence] = useState<"low" | "medium" | "high" | null>(null);
-  const [takeoffMeta, setTakeoffMeta] = useState<string>("");
-  const [wallHeightFt, setWallHeightFt] = useState(10);
-  const [ceilingAdjustmentPct, setCeilingAdjustmentPct] = useState(0);
-  const [drywallSqft, setDrywallSqft] = useState(7000);
-  const [brickSqft, setBrickSqft] = useState(1800);
-  const [windowDoorCount, setWindowDoorCount] = useState(22);
-  const [heatedSqft, setHeatedSqft] = useState(2100);
-  const [underRoofSqft, setUnderRoofSqft] = useState(2600);
-  const [garageSqft, setGarageSqft] = useState(1000);
-  const [lowerLevelSqft, setLowerLevelSqft] = useState(2100);
-  const [brickThousands, setBrickThousands] = useState(0);
-  const [brickSteps, setBrickSteps] = useState(0);
-  const [brickFireplaces, setBrickFireplaces] = useState(0);
-  const [rowlockFt, setRowlockFt] = useState(0);
-  const [customShowers, setCustomShowers] = useState(1);
-  const [siteCondition, setSiteCondition] = useState<SiteCondition>("normal");
-  const [finishTier, setFinishTier] = useState<FinishTier>("better");
-  const [ownerUpgrades, setOwnerUpgrades] = useState(0);
-  const [markupPct, setMarkupPct] = useState(20);
-  const [calibrationPct, setCalibrationPct] = useState(9);
-  const [showLineItems, setShowLineItems] = useState(false);
+  const [takeoffLoading, setTakeoffLoading] = useState(false);
+  const [takeoffMessage, setTakeoffMessage] = useState<string>("");
+  const [takeoffJobId, setTakeoffJobId] = useState<string>("");
+  const [takeoffConfidence, setTakeoffConfidence] = useState<Confidence | null>(null);
 
-  const estimateLineItemAmount = (item: CostItem) => {
-    const sqftScale = heatedSqft > 0 ? heatedSqft / 2100 : 1;
-    let scaled = item.amount * sqftScale;
-
-    const drywallMaterialRate = 5378.54 / 7000;
-    const drywallLaborRate = 11300 / 7000;
-    const brickMaterialRate = 9800 / 1800;
-    const brickLaborRate = 9800 / 1800;
-    const windowsDoorsRate = 10387.3 / 22;
-
-    if (item.name === "Drywall materials") {
-      const adjustedDrywallSqft = drywallSqft * (1 + ceilingAdjustmentPct / 100);
-      scaled = drywallMaterialRate * adjustedDrywallSqft;
-    }
-    if (item.name === "Drywall hang & finish") {
-      const adjustedDrywallSqft = drywallSqft * (1 + ceilingAdjustmentPct / 100);
-      scaled = drywallLaborRate * adjustedDrywallSqft;
-    }
-    if (item.name === "Brick materials") scaled = brickMaterialRate * brickSqft;
-    if (item.name === "Brick labor") {
-      if (brickThousands > 0 || brickSteps > 0 || brickFireplaces > 0 || rowlockFt > 0) {
-        scaled = brickThousands * 400 + brickSteps * 400 + brickFireplaces * 500 + rowlockFt * 4;
-      } else {
-        scaled = brickLaborRate * brickSqft;
-      }
-    }
-    if (item.name === "Windows & exterior doors") scaled = windowsDoorsRate * windowDoorCount;
-    if (item.name === "Permits") scaled = underRoofSqft * 0.42;
-    if (item.name === "Termite spray") scaled = underRoofSqft * 0.5;
-    if (item.name === "Monolithic slab labor") scaled = lowerLevelSqft * 2;
-    if (item.name === "Electrical fixtures") scaled = heatedSqft * 2.25;
-    if (item.name === "Masonry sand") scaled = 850;
-    if (item.name === "Appliances allowance") scaled = 7500;
-    if (item.name === "Floors / tile / backsplash materials") scaled = heatedSqft * 5 + 500 + 500 + customShowers * 2500;
-    if (item.name === "Floors & showers labor") scaled = 0;
-    if (item.name === "Dumpster") scaled = 1950;
-    if (item.name === "Final clean") scaled = (heatedSqft + garageSqft) * 0.25;
-
-    if (item.category === "Shell") {
-      scaled *= siteCondition === "easy" ? 0.97 : siteCondition === "hard" ? 1.1 : 1;
-    }
-    if (item.category === "Exterior") {
-      scaled *= underRoofSqft / 2600;
-    }
-    if (item.category === "Interior") {
-      scaled *= finishTier === "good" ? 0.93 : finishTier === "best" ? 1.12 : 1;
-    }
-
-    return Math.max(0, Math.round(scaled));
-  };
-
-  const saveLineItemsForJobCost = () => {
-    if (typeof window === "undefined") return;
-    const items = BASE_ITEMS.map((item) => ({
-      name: item.name,
-      category: item.category,
-      amount: estimateLineItemAmount(item),
-    }));
-    localStorage.setItem(
-      ESTIMATOR_EXPORT_KEY,
-      JSON.stringify({
-        savedAt: new Date().toISOString(),
-        heatedSqft,
-        underRoofSqft,
-        items,
-      })
-    );
-  };
-
-  const runPlanTakeoff = async () => {
-    if (!planFiles.length) {
-      setTakeoffStatus("Upload at least one plan PDF first.");
-      setTakeoffConfidence(null);
-      return;
-    }
-
-    setTakeoffStatus("Reading plan PDFs...");
-    setTakeoffConfidence(null);
-
+  useEffect(() => {
     try {
-      const body = new FormData();
-      for (const file of planFiles) body.append("files", file);
-      body.append("heatedSqft", String(heatedSqft));
-      body.append("underRoofSqft", String(underRoofSqft));
-
-      const res = await fetch("/api/estimator/plan-takeoff", {
-        method: "POST",
-        body,
-      });
-
-      if (!res.ok) throw new Error("Takeoff request failed");
-      const data = await res.json();
-
-      if (typeof data.wallHeightFt === "number") setWallHeightFt(data.wallHeightFt);
-      if (typeof data.drywallSqft === "number") setDrywallSqft(data.drywallSqft);
-      if (typeof data.brickSqft === "number") setBrickSqft(data.brickSqft);
-      if (typeof data.windowDoorCount === "number") setWindowDoorCount(data.windowDoorCount);
-      if (typeof data.ceilingAdjustmentPct === "number") setCeilingAdjustmentPct(data.ceilingAdjustmentPct);
-
-      setTakeoffConfidence(data.confidence ?? "low");
-      setTakeoffStatus(data.message ?? "Plan takeoff completed.");
-      setTakeoffMeta(
-        data.extraction
-          ? `Windows/doors: ${data.extraction.windowDoorSource}${data.extraction.usedBrickFallback ? " · Brick: fallback used" : ""}`
-          : ""
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          heatedSqft,
+          underRoofSqft,
+          garageSqft,
+          wallHeightFt,
+          drywallSqft,
+          brickSqft,
+          windowDoorCount,
+          drywallRate,
+          brickRate,
+          windowDoorUnit,
+          baseSiteCost,
+          overheadPct,
+          builderFeePct,
+          budgetCategories,
+        })
       );
-    } catch {
-      setTakeoffStatus("Could not auto-read this PDF set. Keep values manual for this plan.");
-      setTakeoffConfidence("low");
-      setTakeoffMeta("");
-    }
-  };
-
-  const calc = useMemo(() => {
-    const baseSqft = 2100;
-    const sqftScale = heatedSqft > 0 ? heatedSqft / baseSqft : 1;
-
-    const siteMultiplier = siteCondition === "easy" ? 0.97 : siteCondition === "hard" ? 1.1 : 1;
-    const finishMultiplier = finishTier === "good" ? 0.93 : finishTier === "best" ? 1.12 : 1;
-
-    const categoryTotals: Record<string, number> = {
-      "Site/Precon": 0,
-      Shell: 0,
-      MEP: 0,
-      Interior: 0,
-      Exterior: 0,
-    };
-
-    const drywallMaterialRate = 5378.54 / 7000;
-    const drywallLaborRate = 11300 / 7000;
-    const brickMaterialRate = 9800 / 1800;
-    const brickLaborRate = 9800 / 1800;
-    const windowsDoorsRate = 10387.3 / 22;
-
-    for (const item of BASE_ITEMS) {
-      let scaled = item.amount * sqftScale;
-
-      if (item.name === "Drywall materials") {
-        const adjustedDrywallSqft = drywallSqft * (1 + ceilingAdjustmentPct / 100);
-        scaled = drywallMaterialRate * adjustedDrywallSqft;
-      }
-
-      if (item.name === "Drywall hang & finish") {
-        const adjustedDrywallSqft = drywallSqft * (1 + ceilingAdjustmentPct / 100);
-        scaled = drywallLaborRate * adjustedDrywallSqft;
-      }
-
-      if (item.name === "Brick materials") {
-        scaled = brickMaterialRate * brickSqft;
-      }
-
-      if (item.name === "Brick labor") {
-        if (brickThousands > 0 || brickSteps > 0 || brickFireplaces > 0 || rowlockFt > 0) {
-          scaled = brickThousands * 400 + brickSteps * 400 + brickFireplaces * 500 + rowlockFt * 4;
-        } else {
-          scaled = brickLaborRate * brickSqft;
-        }
-      }
-
-      if (item.name === "Windows & exterior doors") {
-        scaled = windowsDoorsRate * windowDoorCount;
-      }
-
-      if (item.name === "Permits") {
-        scaled = underRoofSqft * 0.42;
-      }
-
-      if (item.name === "Termite spray") {
-        scaled = underRoofSqft * 0.5;
-      }
-
-      if (item.name === "Monolithic slab labor") {
-        scaled = lowerLevelSqft * 2;
-      }
-
-      if (item.name === "Electrical fixtures") {
-        scaled = heatedSqft * 2.25;
-      }
-
-      if (item.name === "Masonry sand") {
-        scaled = 850;
-      }
-
-      if (item.name === "Appliances allowance") {
-        scaled = 7500;
-      }
-
-      if (item.name === "Floors / tile / backsplash materials") {
-        scaled = heatedSqft * 5 + 500 + 500 + customShowers * 2500;
-      }
-
-      if (item.name === "Floors & showers labor") {
-        scaled = 0;
-      }
-
-      if (item.name === "Dumpster") {
-        scaled = 1950;
-      }
-
-      if (item.name === "Final clean") {
-        scaled = (heatedSqft + garageSqft) * 0.25;
-      }
-
-      categoryTotals[item.category] += scaled;
-    }
-
-    const shellAdjusted = categoryTotals.Shell * siteMultiplier;
-    const exteriorAdjusted = categoryTotals.Exterior * (underRoofSqft / 2600);
-    const interiorAdjusted = categoryTotals.Interior * finishMultiplier;
-
-    const hardCost =
-      categoryTotals["Site/Precon"] + shellAdjusted + categoryTotals.MEP + interiorAdjusted + exteriorAdjusted + ownerUpgrades;
-
-    const calibration = hardCost * (calibrationPct / 100);
-    const calibratedCost = hardCost + calibration;
-    const markup = calibratedCost * (markupPct / 100);
-    const clientQuote = calibratedCost + markup;
-
-    return {
-      categoryTotals: {
-        "Site/Precon": categoryTotals["Site/Precon"],
-        Shell: shellAdjusted,
-        MEP: categoryTotals.MEP,
-        Interior: interiorAdjusted,
-        Exterior: exteriorAdjusted,
-      },
-      hardCost,
-      calibration,
-      calibratedCost,
-      markup,
-      clientQuote,
-      sqftScale,
-    };
+    } catch {}
   }, [
     heatedSqft,
     underRoofSqft,
     garageSqft,
-    lowerLevelSqft,
-    brickThousands,
-    brickSteps,
-    brickFireplaces,
-    rowlockFt,
-    customShowers,
-    siteCondition,
-    finishTier,
-    ownerUpgrades,
-    markupPct,
-    calibrationPct,
+    wallHeightFt,
     drywallSqft,
     brickSqft,
     windowDoorCount,
-    ceilingAdjustmentPct,
+    drywallRate,
+    brickRate,
+    windowDoorUnit,
+    baseSiteCost,
+    overheadPct,
+    builderFeePct,
+    budgetCategories,
   ]);
 
+  const calculations = useMemo(() => {
+    const framingShellAllowance = (heatedSqft + garageSqft) * 26;
+    const drywallCost = drywallSqft * drywallRate;
+    const brickCost = brickSqft * brickRate;
+    const windowDoorCost = windowDoorCount * windowDoorUnit;
+    const customBudgetTotal = budgetCategories.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+
+    const hardCost = baseSiteCost + framingShellAllowance + drywallCost + brickCost + windowDoorCost + customBudgetTotal;
+    const overheadFee = hardCost * (overheadPct / 100);
+    const builderFee = hardCost * (builderFeePct / 100);
+    const clientQuote = hardCost + overheadFee + builderFee;
+
+    return {
+      framingShellAllowance,
+      drywallCost,
+      brickCost,
+      windowDoorCost,
+      customBudgetTotal,
+      summary: { hardCost, overheadFee, builderFee, clientQuote },
+    };
+  }, [
+    heatedSqft,
+    garageSqft,
+    drywallSqft,
+    drywallRate,
+    brickSqft,
+    brickRate,
+    windowDoorCount,
+    windowDoorUnit,
+    baseSiteCost,
+    overheadPct,
+    builderFeePct,
+    budgetCategories,
+  ]);
+
+  const addBudgetCategory = () => {
+    const name = newBudgetName.trim();
+    if (!name) return;
+    const amount = parseFloat(newBudgetAmount.replace(/[^0-9.]/g, "")) || 0;
+    setBudgetCategories((prev) => [...prev, { id: `cat_${Date.now()}`, name, amount }]);
+    setNewBudgetName("");
+    setNewBudgetAmount("");
+  };
+
+  const handleBudgetAmountChange = (id: string, rawValue: string) => {
+    const sanitized = rawValue.replace(/[^0-9.]/g, "");
+    setBudgetInputs((prev) => ({ ...prev, [id]: sanitized }));
+    const value = parseFloat(sanitized) || 0;
+    setBudgetCategories((prev) => prev.map((item) => (item.id === id ? { ...item, amount: value } : item)));
+  };
+
+  const updateBudgetCategory = (id: string, patch: Partial<BudgetCategory>) => {
+    setBudgetCategories((prev) => prev.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+  };
+
+  const removeBudgetCategory = (id: string) => {
+    setBudgetCategories((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const runPlanTakeoff = async () => {
+    if (!planFiles.length) return setTakeoffMessage("Attach at least one plan PDF first.");
+
+    setTakeoffLoading(true);
+    setTakeoffMessage("");
+    setTakeoffConfidence(null);
+    try {
+      const form = new FormData();
+      planFiles.forEach((f) => form.append("files", f));
+      form.append("heatedSqft", String(heatedSqft));
+      form.append("underRoofSqft", String(underRoofSqft));
+
+      const res = await fetch("/api/estimator/takeoff/enqueue", { method: "POST", body: form });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) return setTakeoffMessage(data?.error || `Takeoff enqueue failed (${res.status}).`);
+
+      setTakeoffJobId(data?.jobId || "");
+      setTakeoffMessage("Takeoff queued. Processing...");
+      await fetch("/api/estimator/takeoff/worker", { method: "POST" });
+    } catch {
+      setTakeoffMessage("Takeoff failed. Check connection and try again.");
+    } finally {
+      setTakeoffLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!takeoffJobId) return;
+    const timer = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/estimator/takeoff/status?jobId=${encodeURIComponent(takeoffJobId)}`);
+        const data = await res.json();
+        if (!res.ok || !data?.job) return;
+
+        const job = data.job;
+        if (job.status === "queued") return setTakeoffMessage("Takeoff queued...");
+        if (job.status === "processing") return setTakeoffMessage("Takeoff processing...");
+        if (job.status === "failed") {
+          setTakeoffMessage(job.error || "Takeoff failed.");
+          setTakeoffJobId("");
+          return;
+        }
+
+        if (job.status === "done") {
+          const out = job.result || {};
+          if (typeof out?.wallHeightFt === "number" && out.wallHeightFt > 0) setWallHeightFt(Number(out.wallHeightFt));
+          if (typeof out?.drywallSqft === "number" && out.drywallSqft > 0) setDrywallSqft(Math.round(out.drywallSqft));
+          if (typeof out?.brickSqft === "number" && out.brickSqft > 0) setBrickSqft(Math.round(out.brickSqft));
+          if (typeof out?.windowDoorCount === "number" && out.windowDoorCount > 0) setWindowDoorCount(Math.round(out.windowDoorCount));
+          if (["low", "medium", "high"].includes(out?.confidence)) setTakeoffConfidence(out.confidence as Confidence);
+          setTakeoffMessage(out?.message || "Takeoff complete. Review and adjust rates.");
+          setTakeoffJobId("");
+        }
+      } catch {}
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [takeoffJobId]);
+
+  const confidenceClass =
+    takeoffConfidence === "high"
+      ? "text-emerald-300"
+      : takeoffConfidence === "medium"
+        ? "text-amber-300"
+        : "text-rose-300";
+
   return (
-    <>
+    <div className="space-y-6">
       <section className="mission-panel p-6">
-        <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">Triumph Estimator v1</p>
-        <h2 className="mt-2 text-2xl font-semibold tracking-tight">Custom Home Quote Builder</h2>
-        <p className="mt-2 text-sm text-zinc-400">
-          Uses your real line-item pricing baseline. Goal is conservative quoting so you do not get caught short.
-        </p>
+        <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">Triumph Estimator</p>
+        <h2 className="mt-2 text-2xl font-semibold tracking-tight">Quote Builder</h2>
+        <p className="mt-2 text-sm text-zinc-400">Upload plan PDF, pull takeoff quantities, then price from real rates.</p>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <input type="file" accept=".pdf" multiple onChange={(e) => setPlanFiles(Array.from(e.target.files || []))} className="text-sm" />
+          <button onClick={runPlanTakeoff} disabled={takeoffLoading} className="rounded-lg bg-cyan-600 px-3 py-2 text-sm font-semibold text-white hover:bg-cyan-500 disabled:opacity-50">
+            {takeoffLoading ? "Queueing..." : "Run Plan Takeoff"}
+          </button>
+          {planFiles.length ? <span className="text-xs text-zinc-400">{planFiles.length} file(s) selected</span> : null}
+        </div>
+        {takeoffMessage ? <p className="mt-2 text-sm text-zinc-300">{takeoffMessage}</p> : null}
+        {takeoffConfidence ? <p className={`mt-1 text-xs uppercase tracking-wider ${confidenceClass}`}>Takeoff confidence: {takeoffConfidence}</p> : null}
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
-        <div className="mission-panel p-6 space-y-5">
-          <h3 className="text-lg font-semibold">Inputs</h3>
+      <div className="grid gap-6 xl:grid-cols-3">
+        <section className="mission-panel p-6 space-y-4">
+          <h3 className="text-lg font-semibold">Project Inputs</h3>
+          <label className="block"><span className="text-sm text-zinc-300">Heated sqft</span><input type="number" value={heatedSqft} onChange={(e) => setHeatedSqft(Number(e.target.value) || 0)} className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2" /></label>
+          <label className="block"><span className="text-sm text-zinc-300">Under roof sqft</span><input type="number" value={underRoofSqft} onChange={(e) => setUnderRoofSqft(Number(e.target.value) || 0)} className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2" /></label>
+          <label className="block"><span className="text-sm text-zinc-300">Garage sqft</span><input type="number" value={garageSqft} onChange={(e) => setGarageSqft(Number(e.target.value) || 0)} className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2" /></label>
+        </section>
 
-          <div className="rounded-xl border border-white/10 bg-black/30 p-4 space-y-3">
-            <div>
-              <p className="text-sm font-medium text-zinc-200">Plan PDFs</p>
-              <p className="text-xs text-zinc-500">
-                Upload floor plans/elevations so we can measure sheetrock, brick, windows, and openings per house.
-              </p>
-            </div>
-            <input
-              type="file"
-              accept=".pdf,application/pdf"
-              multiple
-              onChange={(e) => setPlanFiles(Array.from(e.target.files ?? []))}
-              className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm"
-            />
-            {planFiles.length > 0 ? (
-              <div className="space-y-1 text-xs text-zinc-300">
-                {planFiles.map((file) => (
-                  <div key={`${file.name}-${file.size}`}>{file.name}</div>
-                ))}
+        <section className="mission-panel p-6 space-y-4">
+          <h3 className="text-lg font-semibold">Takeoff Quantities</h3>
+          <label className="block"><span className="text-sm text-zinc-300">Wall height (ft)</span><input type="number" value={wallHeightFt} onChange={(e) => setWallHeightFt(Number(e.target.value) || 0)} className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2" /></label>
+          <label className="block"><span className="text-sm text-zinc-300">Drywall sqft</span><input type="number" value={drywallSqft} onChange={(e) => setDrywallSqft(Number(e.target.value) || 0)} className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2" /></label>
+          <label className="block"><span className="text-sm text-zinc-300">Brick sqft</span><input type="number" value={brickSqft} onChange={(e) => setBrickSqft(Number(e.target.value) || 0)} className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2" /></label>
+          <label className="block"><span className="text-sm text-zinc-300">Windows + doors count</span><input type="number" value={windowDoorCount} onChange={(e) => setWindowDoorCount(Number(e.target.value) || 0)} className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2" /></label>
+        </section>
+
+        <section className="mission-panel p-6 space-y-4">
+          <h3 className="text-lg font-semibold">Rates & Fees</h3>
+          <label className="block"><span className="text-sm text-zinc-300">Drywall $/sqft</span><input type="number" step="0.01" value={drywallRate} onChange={(e) => setDrywallRate(Number(e.target.value) || 0)} className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2" /></label>
+          <label className="block"><span className="text-sm text-zinc-300">Brick $/sqft</span><input type="number" step="0.01" value={brickRate} onChange={(e) => setBrickRate(Number(e.target.value) || 0)} className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2" /></label>
+          <label className="block"><span className="text-sm text-zinc-300">Window/door allowance each</span><input type="number" value={windowDoorUnit} onChange={(e) => setWindowDoorUnit(Number(e.target.value) || 0)} className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2" /></label>
+          <label className="block"><span className="text-sm text-zinc-300">Base site/precon allowance</span><input type="number" value={baseSiteCost} onChange={(e) => setBaseSiteCost(Number(e.target.value) || 0)} className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2" /></label>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block"><span className="text-sm text-zinc-300">Overhead %</span><input type="number" step="0.1" value={overheadPct} onChange={(e) => setOverheadPct(Number(e.target.value) || 0)} className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2" /></label>
+            <label className="block"><span className="text-sm text-zinc-300">Builder fee %</span><input type="number" step="0.1" value={builderFeePct} onChange={(e) => setBuilderFeePct(Number(e.target.value) || 0)} className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2" /></label>
+          </div>
+
+          <div className="mt-2 border-t border-white/10 pt-3">
+            <p className="text-sm font-medium text-zinc-200">Budget Categories</p>
+            <p className="text-xs text-zinc-500">Add one-off lines like pool, septic upgrade, driveway upgrade, etc.</p>
+            <div className="mt-2 grid grid-cols-[1fr_130px_auto] gap-2">
+              <input
+                type="text"
+                placeholder="Category name"
+                value={newBudgetName}
+                onChange={(e) => setNewBudgetName(e.target.value)}
+                className="rounded-xl border border-white/10 bg-black/30 px-3 py-2"
+              />
+              <div className="flex items-center rounded-xl border border-white/10 bg-black/30 px-3">
+                <span className="text-zinc-400">$</span>
+                <input
+                  inputMode="decimal"
+                  placeholder="0.00"
+                  value={newBudgetAmount ? formatNumberWithCommas(newBudgetAmount) : ""}
+                  onChange={(e) => setNewBudgetAmount(e.target.value.replace(/[^0-9.]/g, ""))}
+                  className="w-full bg-transparent px-2 py-2 outline-none"
+                />
               </div>
-            ) : (
-              <p className="text-xs text-zinc-500">No plan PDFs uploaded yet.</p>
-            )}
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={runPlanTakeoff}
-                className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-100 hover:bg-cyan-500/20"
-              >
-                Auto-fill takeoff from PDFs
+              <button type="button" onClick={addBudgetCategory} className="rounded-lg bg-cyan-600 px-3 py-2 text-sm font-semibold text-white hover:bg-cyan-500">
+                Add
               </button>
-              {takeoffConfidence ? (
-                <span className="text-xs text-cyan-200/80">Confidence: {takeoffConfidence}</span>
-              ) : null}
-            </div>
-            {takeoffStatus ? <p className="text-xs text-zinc-400">{takeoffStatus}</p> : null}
-            {takeoffMeta ? <p className="text-xs text-zinc-500">{takeoffMeta}</p> : null}
-            <p className="text-xs text-amber-300/90">
-              Auto-read complete. Verify extracted quantities against plan callouts before final quote.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-4 space-y-3">
-            <div>
-              <p className="text-sm font-medium text-cyan-100">Plan-derived takeoff inputs</p>
-              <p className="text-xs text-cyan-200/80">Use values from the uploaded plan set (wall heights + ceiling details).</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <label className="block">
-                <span className="mb-2 block text-sm text-zinc-200">Wall height (ft)</span>
-                <input
-                  type="number"
-                  value={wallHeightFt}
-                  onChange={(e) => setWallHeightFt(Number(e.target.value) || 0)}
-                  className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2"
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-2 block text-sm text-zinc-200">Non-flat ceiling add %</span>
-                <input
-                  type="number"
-                  value={ceilingAdjustmentPct}
-                  onChange={(e) => setCeilingAdjustmentPct(Number(e.target.value) || 0)}
-                  className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2"
-                />
-              </label>
-            </div>
-
-            <label className="block">
-              <span className="mb-2 block text-sm text-zinc-200">Drywall takeoff area (sq ft)</span>
-              <input
-                type="number"
-                value={drywallSqft}
-                onChange={(e) => setDrywallSqft(Number(e.target.value) || 0)}
-                className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2"
-              />
-            </label>
-
-            <label className="block">
-              <span className="mb-2 block text-sm text-zinc-200">Brick takeoff area (sq ft)</span>
-              <input
-                type="number"
-                value={brickSqft}
-                onChange={(e) => setBrickSqft(Number(e.target.value) || 0)}
-                className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2"
-              />
-            </label>
-
-            <label className="block">
-              <span className="mb-2 block text-sm text-zinc-200">Windows + exterior doors count</span>
-              <input
-                type="number"
-                value={windowDoorCount}
-                onChange={(e) => setWindowDoorCount(Number(e.target.value) || 0)}
-                className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2"
-              />
-            </label>
-
-            <div className="grid grid-cols-2 gap-3">
-              <label className="block">
-                <span className="mb-2 block text-sm text-zinc-200">Brick quantity (thousands)</span>
-                <input
-                  type="number"
-                  value={brickThousands}
-                  onChange={(e) => setBrickThousands(Number(e.target.value) || 0)}
-                  className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2"
-                />
-              </label>
-              <label className="block">
-                <span className="mb-2 block text-sm text-zinc-200">Brick steps (count)</span>
-                <input
-                  type="number"
-                  value={brickSteps}
-                  onChange={(e) => setBrickSteps(Number(e.target.value) || 0)}
-                  className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2"
-                />
-              </label>
-              <label className="block">
-                <span className="mb-2 block text-sm text-zinc-200">Brick fireplaces (count)</span>
-                <input
-                  type="number"
-                  value={brickFireplaces}
-                  onChange={(e) => setBrickFireplaces(Number(e.target.value) || 0)}
-                  className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2"
-                />
-              </label>
-              <label className="block">
-                <span className="mb-2 block text-sm text-zinc-200">Row lock feet</span>
-                <input
-                  type="number"
-                  value={rowlockFt}
-                  onChange={(e) => setRowlockFt(Number(e.target.value) || 0)}
-                  className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2"
-                />
-              </label>
-            </div>
-
-            <p className="text-xs text-cyan-200/80">
-              Wall height is captured from plans for visibility and will be used directly once PDF auto-read parsing is wired.
-            </p>
-          </div>
-
-          <label className="block">
-            <span className="mb-2 block text-sm text-zinc-300">Heated sq ft</span>
-            <input
-              type="number"
-              value={heatedSqft}
-              onChange={(e) => setHeatedSqft(Number(e.target.value) || 0)}
-              className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2"
-            />
-          </label>
-
-          <label className="block">
-            <span className="mb-2 block text-sm text-zinc-300">Total under roof sq ft</span>
-            <input
-              type="number"
-              value={underRoofSqft}
-              onChange={(e) => setUnderRoofSqft(Number(e.target.value) || 0)}
-              className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2"
-            />
-          </label>
-
-          <div className="grid grid-cols-2 gap-3">
-            <label className="block">
-              <span className="mb-2 block text-sm text-zinc-300">Lower level sq ft</span>
-              <input
-                type="number"
-                value={lowerLevelSqft}
-                onChange={(e) => setLowerLevelSqft(Number(e.target.value) || 0)}
-                className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2"
-              />
-            </label>
-            <label className="block">
-              <span className="mb-2 block text-sm text-zinc-300">Garage sq ft</span>
-              <input
-                type="number"
-                value={garageSqft}
-                onChange={(e) => setGarageSqft(Number(e.target.value) || 0)}
-                className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2"
-              />
-            </label>
-          </div>
-
-          <label className="block">
-            <span className="mb-2 block text-sm text-zinc-300">Custom showers (count)</span>
-            <input
-              type="number"
-              value={customShowers}
-              onChange={(e) => setCustomShowers(Number(e.target.value) || 0)}
-              className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2"
-            />
-          </label>
-
-          <label className="block">
-            <span className="mb-2 block text-sm text-zinc-300">Site condition</span>
-            <select
-              value={siteCondition}
-              onChange={(e) => setSiteCondition(e.target.value as SiteCondition)}
-              className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2"
-            >
-              <option value="easy">Easy lot</option>
-              <option value="normal">Normal lot</option>
-              <option value="hard">Hard lot (extra dirt/complex)</option>
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="mb-2 block text-sm text-zinc-300">Finish tier</span>
-            <select
-              value={finishTier}
-              onChange={(e) => setFinishTier(e.target.value as FinishTier)}
-              className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2"
-            >
-              <option value="good">Good</option>
-              <option value="better">Better (default)</option>
-              <option value="best">Best</option>
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="mb-2 block text-sm text-zinc-300">Owner upgrades allowance</span>
-            <input
-              type="number"
-              value={ownerUpgrades}
-              onChange={(e) => setOwnerUpgrades(Number(e.target.value) || 0)}
-              className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2"
-            />
-          </label>
-
-          <div className="grid grid-cols-2 gap-3">
-            <label className="block">
-              <span className="mb-2 block text-sm text-zinc-300">Markup %</span>
-              <input
-                type="number"
-                value={markupPct}
-                onChange={(e) => setMarkupPct(Number(e.target.value) || 0)}
-                className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2"
-              />
-            </label>
-            <label className="block">
-              <span className="mb-2 block text-sm text-zinc-300">Calibration % (Crabtree)</span>
-              <input
-                type="number"
-                value={calibrationPct}
-                onChange={(e) => setCalibrationPct(Number(e.target.value) || 0)}
-                className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2"
-              />
-            </label>
-          </div>
-
-          <p className="text-xs text-zinc-500">Baseline model from your 2,100 sf custom home pricing list.</p>
-        </div>
-
-        <div className="mission-panel p-6 space-y-4">
-          <h3 className="text-lg font-semibold">Quote Summary</h3>
-          <div>
-            <button
-              type="button"
-              onClick={() => setShowLineItems((prev) => !prev)}
-              className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-200 hover:bg-white/5"
-            >
-              {showLineItems ? "Hide" : "Show"} estimated line items by category
-            </button>
-            <button
-              type="button"
-              onClick={saveLineItemsForJobCost}
-              className="ml-2 rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-100 hover:bg-cyan-500/20"
-            >
-              Save line items for Job Cost
-            </button>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-black/30 p-4 space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-zinc-400">Site / Precon</span><span>{formatCurrency(calc.categoryTotals["Site/Precon"])}</span></div>
-            <div className="flex justify-between"><span className="text-zinc-400">Shell</span><span>{formatCurrency(calc.categoryTotals.Shell)}</span></div>
-            <div className="flex justify-between"><span className="text-zinc-400">MEP</span><span>{formatCurrency(calc.categoryTotals.MEP)}</span></div>
-            <div className="flex justify-between"><span className="text-zinc-400">Interior</span><span>{formatCurrency(calc.categoryTotals.Interior)}</span></div>
-            <div className="flex justify-between"><span className="text-zinc-400">Exterior</span><span>{formatCurrency(calc.categoryTotals.Exterior)}</span></div>
-            <div className="flex justify-between"><span className="text-zinc-400">Owner upgrades</span><span>{formatCurrency(ownerUpgrades)}</span></div>
-          </div>
-
-          {showLineItems ? (
-            <div className="rounded-xl border border-white/10 bg-black/30 p-4">
-              <div className="mb-3 text-sm font-medium">Estimated line items</div>
-              <div className="max-h-72 space-y-2 overflow-auto pr-1 text-sm">
-                {(["Site/Precon", "Shell", "MEP", "Interior", "Exterior"] as const).map((category) => (
-                  <div key={category} className="rounded-lg border border-white/10 p-3">
-                    <div className="mb-2 text-xs uppercase tracking-[0.15em] text-zinc-400">{category}</div>
-                    <div className="space-y-1">
-                      {BASE_ITEMS.filter((item) => item.category === category).map((item) => {
-                        const amount = estimateLineItemAmount(item);
-
-                        return (
-                          <div key={item.name} className="flex justify-between gap-3">
-                            <span className="text-zinc-300">{item.name}</span>
-                            <span className="text-zinc-100">{formatCurrency(amount)}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
+            <div className="mt-2 space-y-2">
+              {budgetCategories.map((item) => (
+                <div key={item.id} className="grid grid-cols-[1fr_130px_auto] gap-2">
+                  <input
+                    type="text"
+                    value={item.name}
+                    onChange={(e) => updateBudgetCategory(item.id, { name: e.target.value })}
+                    className="rounded-xl border border-white/10 bg-black/30 px-3 py-2"
+                  />
+                  <div className="flex items-center rounded-xl border border-white/10 bg-black/30 px-3">
+                    <span className="text-zinc-400">$</span>
+                    <input
+                      inputMode="decimal"
+                      value={budgetInputs[item.id] ? formatNumberWithCommas(budgetInputs[item.id]) : (item.amount === 0 ? "" : formatNumberWithCommas(String(item.amount)))}
+                      onChange={(e) => handleBudgetAmountChange(item.id, e.target.value)}
+                      className="w-full bg-transparent px-2 py-2 outline-none"
+                    />
                   </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          <div className="rounded-xl border border-white/10 bg-black/30 p-4 space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-zinc-400">Internal target cost</span><span>{formatCurrency(calc.hardCost)}</span></div>
-            <div className="flex justify-between"><span className="text-zinc-400">Calibration buffer</span><span>{formatCurrency(calc.calibration)}</span></div>
-            <div className="flex justify-between"><span className="text-zinc-400">Calibrated cost</span><span>{formatCurrency(calc.calibratedCost)}</span></div>
-            <div className="flex justify-between"><span className="text-zinc-400">Markup</span><span>{formatCurrency(calc.markup)}</span></div>
-            <div className="mt-3 flex justify-between border-t border-white/10 pt-3 text-lg font-semibold">
-              <span>Client quote</span>
-              <span>{formatCurrency(calc.clientQuote)}</span>
+                  <button type="button" onClick={() => removeBudgetCategory(item.id)} className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200 hover:bg-rose-500/20">
+                    Remove
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
+        </section>
+      </div>
 
-          <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-4 text-sm text-cyan-100">
-            Conservative mode is ON. Current pricing protects margin with markup.
-          </div>
+      <section className="mission-panel p-6">
+        <h3 className="text-lg font-semibold mb-4">Cost Summary</h3>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between"><span className="text-zinc-400">Base site + precon</span><span>{formatCurrency(baseSiteCost)}</span></div>
+          <div className="flex justify-between"><span className="text-zinc-400">Framing/shell allowance</span><span>{formatCurrency(calculations.framingShellAllowance)}</span></div>
+          <div className="flex justify-between"><span className="text-zinc-400">Drywall ({drywallSqft.toLocaleString()} × {drywallRate})</span><span>{formatCurrency(calculations.drywallCost)}</span></div>
+          <div className="flex justify-between"><span className="text-zinc-400">Brick ({brickSqft.toLocaleString()} × {brickRate})</span><span>{formatCurrency(calculations.brickCost)}</span></div>
+          <div className="flex justify-between"><span className="text-zinc-400">Windows/doors ({windowDoorCount} × {windowDoorUnit})</span><span>{formatCurrency(calculations.windowDoorCost)}</span></div>
+          <div className="flex justify-between"><span className="text-zinc-400">Custom budget categories</span><span>{formatCurrency(calculations.customBudgetTotal)}</span></div>
+          <div className="mt-2 border-t border-white/10 pt-2 flex justify-between"><span className="text-zinc-400">Hard Cost</span><span className="font-medium">{formatCurrency(calculations.summary.hardCost)}</span></div>
+          <div className="flex justify-between"><span className="text-zinc-400">Overhead ({overheadPct}%)</span><span className="font-medium">{formatCurrency(calculations.summary.overheadFee)}</span></div>
+          <div className="flex justify-between"><span className="text-zinc-400">Builder Fee ({builderFeePct}%)</span><span className="font-medium">{formatCurrency(calculations.summary.builderFee)}</span></div>
+          <div className="border-t border-white/10 pt-2 flex justify-between text-lg font-semibold"><span>Client Quote</span><span>{formatCurrency(calculations.summary.clientQuote)}</span></div>
         </div>
       </section>
-    </>
+    </div>
   );
 }
